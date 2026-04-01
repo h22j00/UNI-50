@@ -281,6 +281,63 @@ window.prevAllSlide = () => { if (allCurrentSlide > 0) { allCurrentSlide--; rend
 window.nextAllSlide = () => { if (allCurrentSlide < allPrayersCache.length - 1) { allCurrentSlide++; renderAllCards(allPrayersCache); } };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  댓글 인라인 렌더 (카드 아래)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const commentUnsubMap = {}; // prayerId → unsub
+
+function renderInlineComments(personId, prayerId, containerId) {
+  if (commentUnsubMap[prayerId]) { commentUnsubMap[prayerId](); }
+  const commentsCol = collection(doc(db, 'persons', personId, 'prayers', prayerId), 'comments');
+  commentUnsubMap[prayerId] = onSnapshot(commentsCol, snap => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    if (snap.empty) {
+      container.innerHTML = '<p class="no-comment-text">아직 댓글이 없어요</p>';
+      return;
+    }
+    const comments = snap.docs.map(d => d.data());
+    // 슬라이더
+    let cSlide = parseInt(container.dataset.slide || '0');
+    if (cSlide >= comments.length) cSlide = comments.length - 1;
+    container.dataset.slide = cSlide;
+
+    const dotsHtml = comments.length > 1 ? comments.map((_, i) =>
+      `<span class="dot ${i === cSlide ? 'active' : ''}" style="width:5px;height:5px;" onclick="commentSlide('${containerId}',${i})"></span>`
+    ).join('') : '';
+
+    const c = comments[cSlide];
+    const t = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
+    const timeStr = `${t.getMonth()+1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
+
+    container.innerHTML = `
+      <div class="inline-comment">
+        <div class="comment-header">
+          <span class="comment-author">${escHtml(c.author || '익명')}</span>
+          <span class="comment-time">${timeStr}</span>
+          ${comments.length > 1 ? `
+            <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
+              <button class="c-nav" onclick="commentSlide('${containerId}',${cSlide-1})" ${cSlide===0?'disabled':''}>‹</button>
+              <div style="display:flex;gap:3px;">${dotsHtml}</div>
+              <button class="c-nav" onclick="commentSlide('${containerId}',${cSlide+1})" ${cSlide===comments.length-1?'disabled':''}>›</button>
+            </div>` : ''}
+        </div>
+        <div class="comment-text">${escHtml(c.text)}</div>
+      </div>`;
+  });
+}
+
+window.commentSlide = (containerId, i) => {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.dataset.slide = i;
+  // 리스너가 자동으로 재렌더하도록 강제 트리거
+  container.dispatchEvent(new Event('slide'));
+  // 직접 재렌더 위해 unsub 재호출 트릭: dataset만 바꾸고 innerHTML 갱신
+  const snap = container._lastSnap;
+  if (!snap) return;
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  개인 카드 렌더
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderCards(prayers, personId) {
@@ -300,6 +357,7 @@ function renderCards(prayers, personId) {
   const cardsHtml = sorted.map(pr => {
     const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
     const dateStr = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    const commentContainerId = `comments-${pr.id}`;
     return `
       <div class="prayer-card">
         <div class="card-date">${dateStr}</div>
@@ -310,10 +368,16 @@ function renderCards(prayers, personId) {
             <button class="heart-btn ${pr.liked ? 'liked' : ''}" onclick="toggleLike('${personId}','${pr.id}',this)">
               ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
             </button>
-            <button class="btn btn-edit" onclick="openCommentModal('${personId}','${pr.id}')">💬</button>
             <button class="btn btn-edit" onclick="openEditModal('${pr.id}')">✏️</button>
             <button class="btn btn-danger" onclick="deletePrayer('${pr.id}')">삭제</button>
           </div>
+        </div>
+        <div class="inline-comments-section">
+          <div class="inline-comments-header">
+            <span>💬 댓글</span>
+            <button class="add-comment-btn" onclick="openCommentInput('${personId}','${pr.id}','${commentContainerId}')">＋ 작성</button>
+          </div>
+          <div id="${commentContainerId}" class="inline-comments-container"></div>
         </div>
       </div>`;
   }).join('');
@@ -328,6 +392,11 @@ function renderCards(prayers, personId) {
       <button class="nav-btn" onclick="prevSlide()" ${currentSlide===0?'disabled':''}>‹</button>
       <button class="nav-btn" onclick="nextSlide()" ${currentSlide===sorted.length-1?'disabled':''}>›</button>
     </div>`;
+
+  // 각 카드 댓글 리스너 등록
+  sorted.forEach(pr => {
+    renderInlineComments(personId, pr.id, `comments-${pr.id}`);
+  });
 }
 
 function escHtml(str) {
@@ -356,37 +425,21 @@ window.toggleLike = async (personId, prayerId, btn) => {
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  댓글
+//  댓글 인라인 입력
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+window.openCommentInput = (personId, prayerId, containerId) => {
+  commentPrayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
+  document.getElementById('comment-text').value  = '';
+  document.getElementById('comment-modal').classList.add('open');
+  document.getElementById('comment-modal').dataset.containerId = containerId;
+  setTimeout(() => document.getElementById('comment-text').focus(), 200);
+};
+
 window.openCommentModal = (personId, prayerId) => {
   commentPrayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
   document.getElementById('comment-text').value = '';
   document.getElementById('comment-modal').classList.add('open');
-
-  // 댓글 실시간 리스너
-  if (commentUnsub) commentUnsub();
-  const commentsCol = collection(commentPrayerRef, 'comments');
-  commentUnsub = onSnapshot(collection(commentPrayerRef, 'comments'), snap => {
-    const list = document.getElementById('comment-list');
-    if (snap.empty) {
-      list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;">아직 댓글이 없어요</p>';
-      return;
-    }
-    list.innerHTML = snap.docs.map(d => {
-      const c = d.data();
-      const t = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
-      const timeStr = `${t.getMonth()+1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
-      return `
-        <div class="comment-item">
-          <div class="comment-header">
-            <span class="comment-author">${escHtml(c.author || '익명')}</span>
-            <span class="comment-time">${timeStr}</span>
-          </div>
-          <div class="comment-text">${escHtml(c.text)}</div>
-        </div>`;
-    }).join('');
-    list.scrollTop = list.scrollHeight;
-  });
+  setTimeout(() => document.getElementById('comment-text').focus(), 200);
 };
 
 window.closeCommentModal = () => {
@@ -400,6 +453,7 @@ window.saveComment = async () => {
   if (!text) return;
   await addDoc(collection(commentPrayerRef, 'comments'), { text, author, createdAt: serverTimestamp() });
   document.getElementById('comment-text').value = '';
+  document.getElementById('comment-modal').classList.remove('open');
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -448,16 +502,18 @@ window.deletePrayer = async prayerId => {
 //  사람 추가 / 수정
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderEmojiPicker(current) {
-  document.getElementById('emoji-picker').innerHTML = EMOJIS.map(e =>
-    `<button class="emoji-btn ${e===current?'selected':''}" onclick="selectEmoji('${e}',this)">${e}</button>`
+  const picker = document.getElementById('emoji-picker');
+  picker.innerHTML = EMOJIS.map((e, i) =>
+    `<button class="emoji-btn ${e===current?'selected':''}" data-emoji="${i}" title="${e}">${e}</button>`
   ).join('');
+  picker.onclick = e => {
+    const btn = e.target.closest('.emoji-btn');
+    if (!btn) return;
+    selectedEmoji = EMOJIS[parseInt(btn.dataset.emoji)];
+    picker.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  };
 }
-
-window.selectEmoji = (e, btn) => {
-  selectedEmoji = e;
-  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-};
 
 window.openAddPersonModal = () => {
   editingPersonId = null;
