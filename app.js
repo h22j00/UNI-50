@@ -244,6 +244,7 @@ function renderAllCards(prayers) {
   const cardsHtml = prayers.map(pr => {
     const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
     const dateStr = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
+    const commentContainerId = `all-comments-${pr.personId}-${pr.id}`;
     return `
       <div class="prayer-card">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -258,8 +259,14 @@ function renderAllCards(prayers) {
             <button class="heart-btn ${pr.liked ? 'liked' : ''}" onclick="toggleLike('${pr.personId}','${pr.id}',this)">
               ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
             </button>
-            <button class="btn btn-edit" onclick="openCommentModal('${pr.personId}','${pr.id}')">💬 댓글</button>
           </div>
+        </div>
+        <div class="inline-comments-section">
+          <div class="inline-comments-header">
+            <span>💬 댓글</span>
+            <button class="add-comment-btn" onclick="openCommentInput('${pr.personId}','${pr.id}','${commentContainerId}')">＋ 작성</button>
+          </div>
+          <div id="${commentContainerId}" class="inline-comments-container"></div>
         </div>
       </div>`;
   }).join('');
@@ -274,6 +281,11 @@ function renderAllCards(prayers) {
       <button class="nav-btn" onclick="prevAllSlide()" ${allCurrentSlide===0?'disabled':''}>‹</button>
       <button class="nav-btn" onclick="nextAllSlide()" ${allCurrentSlide===prayers.length-1?'disabled':''}>›</button>
     </div>`;
+
+  // 각 카드 댓글 리스너 등록
+  prayers.forEach(pr => {
+    renderInlineComments(pr.personId, pr.id, `all-comments-${pr.personId}-${pr.id}`);
+  });
 }
 
 window.goAllSlide   = i => { allCurrentSlide = i; renderAllCards(allPrayersCache); };
@@ -281,60 +293,66 @@ window.prevAllSlide = () => { if (allCurrentSlide > 0) { allCurrentSlide--; rend
 window.nextAllSlide = () => { if (allCurrentSlide < allPrayersCache.length - 1) { allCurrentSlide++; renderAllCards(allPrayersCache); } };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  댓글 인라인 렌더 (카드 아래)
+//  댓글 인라인 렌더 (카드 아래 슬라이더)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const commentUnsubMap = {}; // prayerId → unsub
+const commentUnsubMap = {};
+const commentSlideMap = {}; // prayerId → 현재 슬라이드 인덱스
+const commentDataMap  = {}; // prayerId → 댓글 배열
 
 function renderInlineComments(personId, prayerId, containerId) {
-  if (commentUnsubMap[prayerId]) { commentUnsubMap[prayerId](); }
+  if (commentUnsubMap[prayerId]) commentUnsubMap[prayerId]();
+  if (!commentSlideMap[prayerId]) commentSlideMap[prayerId] = 0;
+
   const commentsCol = collection(doc(db, 'persons', personId, 'prayers', prayerId), 'comments');
   commentUnsubMap[prayerId] = onSnapshot(commentsCol, snap => {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    if (snap.empty) {
-      container.innerHTML = '<p class="no-comment-text">아직 댓글이 없어요</p>';
-      return;
-    }
-    const comments = snap.docs.map(d => d.data());
-    // 슬라이더
-    let cSlide = parseInt(container.dataset.slide || '0');
-    if (cSlide >= comments.length) cSlide = comments.length - 1;
-    container.dataset.slide = cSlide;
-
-    const dotsHtml = comments.length > 1 ? comments.map((_, i) =>
-      `<span class="dot ${i === cSlide ? 'active' : ''}" style="width:5px;height:5px;" onclick="commentSlide('${containerId}',${i})"></span>`
-    ).join('') : '';
-
-    const c = comments[cSlide];
-    const t = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
-    const timeStr = `${t.getMonth()+1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
-
-    container.innerHTML = `
-      <div class="inline-comment">
-        <div class="comment-header">
-          <span class="comment-author">${escHtml(c.author || '익명')}</span>
-          <span class="comment-time">${timeStr}</span>
-          ${comments.length > 1 ? `
-            <div style="display:flex;align-items:center;gap:4px;margin-left:auto;">
-              <button class="c-nav" onclick="commentSlide('${containerId}',${cSlide-1})" ${cSlide===0?'disabled':''}>‹</button>
-              <div style="display:flex;gap:3px;">${dotsHtml}</div>
-              <button class="c-nav" onclick="commentSlide('${containerId}',${cSlide+1})" ${cSlide===comments.length-1?'disabled':''}>›</button>
-            </div>` : ''}
-        </div>
-        <div class="comment-text">${escHtml(c.text)}</div>
-      </div>`;
+    commentDataMap[prayerId] = snap.docs.map(d => d.data());
+    // 범위 초과 방지
+    if (commentSlideMap[prayerId] >= commentDataMap[prayerId].length)
+      commentSlideMap[prayerId] = Math.max(0, commentDataMap[prayerId].length - 1);
+    drawCommentSlide(prayerId, containerId);
   });
 }
 
-window.commentSlide = (containerId, i) => {
+function drawCommentSlide(prayerId, containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
-  container.dataset.slide = i;
-  // 리스너가 자동으로 재렌더하도록 강제 트리거
-  container.dispatchEvent(new Event('slide'));
-  // 직접 재렌더 위해 unsub 재호출 트릭: dataset만 바꾸고 innerHTML 갱신
-  const snap = container._lastSnap;
-  if (!snap) return;
+  const comments = commentDataMap[prayerId] || [];
+  const idx      = commentSlideMap[prayerId] || 0;
+
+  if (comments.length === 0) {
+    container.innerHTML = '<p class="no-comment-text">아직 댓글이 없어요</p>';
+    return;
+  }
+
+  const c = comments[idx];
+  const t = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
+  const timeStr = `${t.getMonth()+1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
+
+  const dotsHtml = comments.map((_, i) =>
+    `<span class="dot ${i===idx?'active':''}" style="width:5px;height:5px;cursor:pointer;" onclick="moveCommentSlide('${prayerId}','${containerId}',${i})"></span>`
+  ).join('');
+
+  container.innerHTML = `
+    <div class="inline-comment">
+      <div class="comment-header">
+        <span class="comment-author">${escHtml(c.author || '익명')}</span>
+        <span class="comment-time">${timeStr}</span>
+      </div>
+      <div class="comment-text">${escHtml(c.text)}</div>
+      ${comments.length > 1 ? `
+      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;">
+        <button class="c-nav" onclick="moveCommentSlide('${prayerId}','${containerId}',${idx-1})" ${idx===0?'disabled':''}>‹</button>
+        <div style="display:flex;gap:4px;">${dotsHtml}</div>
+        <button class="c-nav" onclick="moveCommentSlide('${prayerId}','${containerId}',${idx+1})" ${idx===comments.length-1?'disabled':''}>›</button>
+      </div>` : ''}
+    </div>`;
+}
+
+window.moveCommentSlide = (prayerId, containerId, i) => {
+  const comments = commentDataMap[prayerId] || [];
+  if (i < 0 || i >= comments.length) return;
+  commentSlideMap[prayerId] = i;
+  drawCommentSlide(prayerId, containerId);
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
