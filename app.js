@@ -9,13 +9,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCADqAGXMsXDMf9JJkmb2CNr_5LEKWfZnE",
-  authDomain: "uniplus-ffe52.firebaseapp.com",
-  projectId: "uniplus-ffe52",
-  storageBucket: "uniplus-ffe52.firebasestorage.app",
-  messagingSenderId: "221278443064",
-  appId: "1:221278443064:web:425148da72fe8c644738cd",
-  measurementId: "G-RW3L1347H4"
+  apiKey:            "AIzaSyBHfwsHew71Bo6kWmkpfoiimZ7xzRnM0Yg",
+  authDomain:        "uniplus50pray.firebaseapp.com",
+  projectId:         "uniplus50pray",
+  storageBucket:     "uniplus50pray.firebasestorage.app",
+  messagingSenderId: "1015188366263",
+  appId:             "1:1015188366263:web:c822be79ce3d8fb8a27e32"
 };
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
