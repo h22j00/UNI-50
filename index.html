@@ -19,9 +19,6 @@
 <nav id="sidebar" style="display:none">
   <div class="sidebar-title">기도</div>
 
-  <!-- 사람 추가 버튼 (상단) -->
-  <button class="add-person-btn" onclick="openAddPersonModal()" title="사람 추가">＋</button>
-
   <!-- 검색 -->
   <div class="search-wrap">
     <input type="text" id="search-input" placeholder="🔍 이름 검색" oninput="filterPersons(this.value)">
@@ -34,6 +31,7 @@
   </button>
 
   <div id="person-list"></div>
+  <button class="add-person-btn" onclick="openAddPersonModal()" title="사람 추가">＋</button>
 </nav>
 
 <!-- 메인 -->
