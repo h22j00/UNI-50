@@ -76,7 +76,7 @@ body {
   padding: 20px 0 20px;
   gap: 6px;
   flex-shrink: 0;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .sidebar-title {
@@ -195,9 +195,20 @@ body {
   background: transparent; color: var(--text-muted);
   font-size: 22px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  transition: all .2s; margin-top: 8px;
+  transition: all .2s; flex-shrink: 0;
 }
 .add-person-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+#person-list {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
 
 /* ── 메인 ── */
 #main {
