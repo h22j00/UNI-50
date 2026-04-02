@@ -520,6 +520,24 @@ body {
   font-size: clamp(12px, 3.2vw, 14px);
   line-height: 1.7;
   color: var(--text);
+
+  max-height: 100px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  padding-right: 4px;
+}
+
+.comment-text::-webkit-scrollbar {
+  width: 5px;
+}
+
+.comment-text::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.comment-text::-webkit-scrollbar-track {
+  background: transparent;
 }
 .no-comment-text {
   font-size: 12px; color: var(--text-muted);
