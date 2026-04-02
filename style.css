@@ -445,24 +445,38 @@ body {
 .comment-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 6px;
+  flex-wrap: nowrap;
+  min-width: 0;
 }
 .comment-author {
-  font-family: 'Noto Serif KR', serif;
+  font-family: 'Noto Sans KR', sans-serif;
   font-size: 12px;
+  font-weight: 500;
   color: var(--text);
-  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+  flex-shrink: 0;
 }
 .comment-time {
-  font-family: 'Noto Serif KR', serif;
-  font-size: 11px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 10px;
   color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.3px;
+}
+.comment-header-spacer {
+  flex: 1;
+  min-width: 0;
 }
 .comment-actions {
   display: flex;
-  gap: 4px;
-  margin-left: 4px;
+  gap: 2px;
+  flex-shrink: 0;
   opacity: 0;
   transition: opacity .2s;
 }
@@ -482,9 +496,9 @@ body {
 .comment-action-btn.danger:hover { background: rgba(224,107,107,.15); }
 
 .comment-text {
-  font-family: 'Noto Serif KR', serif;
-  font-size: clamp(12px, 3.5vw, 15px);
-  line-height: 1.9;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: clamp(12px, 3.2vw, 14px);
+  line-height: 1.7;
   color: var(--text);
 }
 .no-comment-text {
