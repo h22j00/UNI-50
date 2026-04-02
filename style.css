@@ -311,7 +311,7 @@ body {
   white-space: pre-wrap;
   min-height: 80px;
 
-  max-height: 260px;
+  max-height: 180px;
   overflow-y: auto;
   padding-right: 6px;
 }
