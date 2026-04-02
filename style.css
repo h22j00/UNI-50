@@ -221,11 +221,18 @@ body {
   padding: 40px 32px; overflow-y: auto;
 }
 
-.empty-state { text-align: center; animation: fadeIn .5s ease; }
-.empty-state .cross { font-size: 52px; margin-bottom: 20px; opacity: .35; }
+.empty-state { text-align: center; animation: fadeIn .5s ease; padding: 20px; }
+.uni-logo {
+  width: min(260px, 70vw);
+  margin: 0 auto 24px;
+  opacity: 0.75;
+  filter: drop-shadow(0 0 12px rgba(200,196,188,0.2));
+}
+.uni-logo svg { width: 100%; height: auto; }
 .empty-state h2 {
   font-family: 'Noto Serif KR', serif;
-  font-size: 20px; font-weight: 300; color: var(--text-muted);
+  font-size: clamp(14px, 4vw, 20px);
+  font-weight: 300; color: var(--text-muted);
 }
 
 @keyframes slideUp {
