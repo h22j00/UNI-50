@@ -179,9 +179,10 @@ window.openAllView = async () => {
   let allPrayers = [];
   for (const person of persons) {
     const snap = await getDocs(collection(db, 'persons', person.id, 'prayers'));
-    snap.docs.forEach(d => {
-      allPrayers.push({ id: d.id, personId: person.id, personName: person.name, personIcon: person.icon, ...d.data() });
-    });
+    for (const d of snap.docs) {
+      const commSnap = await getDocs(collection(db, 'persons', person.id, 'prayers', d.id, 'comments'));
+      allPrayers.push({ id: d.id, personId: person.id, personName: person.name, personIcon: person.icon, commentCount: commSnap.size, ...d.data() });
+    }
   }
   allPrayers.sort((a, b) => {
     const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
@@ -203,6 +204,7 @@ function buildCardHtml(pr, dotsHtml, showPersonInfo) {
   const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
   const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
   const likerNames = (pr.likers || []).join(', ');
+  const commentCount = pr.commentCount || 0;
   const personInfo = showPersonInfo ? `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <span style="font-size:22px;">${pr.personIcon}</span>
@@ -214,7 +216,7 @@ function buildCardHtml(pr, dotsHtml, showPersonInfo) {
     <button class="btn btn-edit" onclick="openEditModal('${pr.id}')">✏️</button>
     <button class="btn btn-danger" onclick="deletePrayer('${pr.id}')">🗑️</button>` : '';
 
-  const pid = showPersonInfo ? pr.personId : pr.personId || '';
+  const pid = pr.personId || '';
 
   return `
     <div class="prayer-card">
@@ -233,11 +235,12 @@ function buildCardHtml(pr, dotsHtml, showPersonInfo) {
             ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
           </button>
           <button class="comment-bubble-btn"
+            id="comment-btn-${pr.id}"
             onmousedown="startCommentHold(event,'${pid}','${pr.id}')"
             onmouseup="cancelCommentHold()" onmouseleave="cancelCommentHold()"
             ontouchstart="startCommentHold(event,'${pid}','${pr.id}')"
             ontouchend="cancelCommentHold()">
-            💬
+            💬 <span class="comment-count">${commentCount > 0 ? commentCount : ''}</span>
           </button>
           ${editDeleteBtns}
         </div>
@@ -299,6 +302,18 @@ function renderCards(prayers, personId) {
       <button class="nav-btn" onclick="prevSlide()" ${currentSlide===0?'disabled':''}>‹</button>
       <button class="nav-btn" onclick="nextSlide()" ${currentSlide===sorted.length-1?'disabled':''}>›</button>
     </div>`;
+
+  // 댓글 수 실시간 반영
+  withPid.forEach(pr => {
+    const commentsCol = collection(doc(db, 'persons', personId, 'prayers', pr.id), 'comments');
+    onSnapshot(commentsCol, snap => {
+      const btn = document.getElementById(`comment-btn-${pr.id}`);
+      if (!btn) return;
+      const cnt = snap.size;
+      const countEl = btn.querySelector('.comment-count');
+      if (countEl) countEl.textContent = cnt > 0 ? cnt : '';
+    });
+  });
 }
 
 function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
