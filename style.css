@@ -374,6 +374,19 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px; padding: 10px 12px;
 }
+
+.comment-author {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.comment-time {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .comment-text {
   font-family: 'Noto Serif KR', serif;
   font-size: clamp(12px, 3.5vw, 15px);
