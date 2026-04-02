@@ -150,6 +150,22 @@
   </div>
 </div>
 
+<!-- 하트 이름 입력 모달 -->
+<div class="modal-overlay" id="liker-name-modal">
+  <div class="modal liker-modal">
+    <div class="liker-modal-icon">❤️</div>
+    <h2 class="liker-modal-title">기도에 하트를 눌렀어요</h2>
+    <p class="liker-modal-sub">이름을 남겨주세요 (빈칸이면 익명)</p>
+    <div class="form-group" style="margin-bottom:20px;">
+      <input type="text" id="liker-name-input" placeholder="이름 입력..." maxlength="20">
+    </div>
+    <div class="modal-actions" style="justify-content:center;gap:12px;">
+      <button class="btn btn-outline" id="liker-name-cancel" style="min-width:80px;">취소</button>
+      <button class="btn btn-heart-ok" id="liker-name-ok" style="min-width:80px;">❤️ 하트 남기기</button>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>
