@@ -374,6 +374,12 @@ body {
   border: 1px solid var(--border);
   border-radius: 10px; padding: 10px 12px;
 }
+.comment-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(12px, 3.5vw, 15px);
+  line-height: 1.9;
+  color: var(--text);
+}
 .no-comment-text {
   font-size: 12px; color: var(--text-muted);
   text-align: center; padding: 8px 0;
@@ -466,12 +472,3 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-/* 👇 여기부터 붙여 */
-.inline-comment {
-  background: linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  padding: 12px 14px;
-  transition: all 0.2s ease;
-}
-...
