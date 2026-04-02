@@ -481,38 +481,73 @@ window.nextSlide = () => {
 //  하트 (좋아요) + 누가 눌렀나 팝업
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// 하트 누를 때 이름 입력 요청
+// 이름 입력 커스텀 모달 — Promise 반환
+function promptLikerName() {
+  return new Promise(resolve => {
+    const overlay = document.getElementById('liker-name-modal');
+    const input   = document.getElementById('liker-name-input');
+    const btnOk   = document.getElementById('liker-name-ok');
+    const btnCancel = document.getElementById('liker-name-cancel');
+
+    input.value = '';
+    overlay.classList.add('open');
+    setTimeout(() => input.focus(), 250);
+
+    const cleanup = () => {
+      overlay.classList.remove('open');
+      btnOk.removeEventListener('click', onOk);
+      btnCancel.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      document.removeEventListener('keydown', onKey);
+    };
+    const onOk = () => { cleanup(); resolve(input.value.trim() || '익명'); };
+    const onCancel = () => { cleanup(); resolve(null); };
+    const onOverlay = (e) => { if (e.target === overlay) onCancel(); };
+    const onKey = (e) => {
+      if (e.key === 'Enter') onOk();
+      if (e.key === 'Escape') onCancel();
+    };
+
+    btnOk.addEventListener('click', onOk);
+    btnCancel.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+    document.addEventListener('keydown', onKey);
+  });
+}
+
+// 하트 토글
 window.toggleLike = async (personId, prayerId, btn) => {
-  // 길게 누르기 중이면 클릭 무시 (holdActive flag)
   if (btn._holdFired) { btn._holdFired = false; return; }
 
   const prayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
   const isLiked = btn.classList.contains('liked');
 
   if (!isLiked) {
-    // 이름 입력 받기
-    const name = prompt('하트를 누른 이름을 입력해주세요 (빈칸이면 익명으로 표시됩니다):');
-    if (name === null) return; // 취소
-    const displayName = (name || '').trim() || '익명';
+    const displayName = await promptLikerName();
+    if (displayName === null) return; // 취소
+
+    // 이름을 버튼에 저장 (나중에 취소할 때 제거용)
+    btn.dataset.myLikerName = displayName;
+
     btn.classList.add('liked');
-    const span = btn.querySelector('span');
-    span.textContent = (parseInt(span.textContent) || 0) + 1;
-    btn.innerHTML = `❤️ <span>${parseInt(btn.querySelector ? btn.querySelector('span').textContent : span.textContent)}</span>`;
+    const cur = parseInt(btn.querySelector('span').textContent) || 0;
+    btn.innerHTML = `❤️ <span>${cur + 1}</span>`;
     await updateDoc(prayerRef, {
       likes: increment(1),
       liked: true,
       likers: arrayUnion(displayName)
     });
   } else {
+    // 취소 시 본인 이름 likers에서 제거
+    const myName = btn.dataset.myLikerName || null;
     btn.classList.remove('liked');
-    const span = btn.querySelector('span');
-    const cur = parseInt(span.textContent) || 0;
+    const cur = parseInt(btn.querySelector('span').textContent) || 0;
     btn.innerHTML = `🤍 <span>${Math.max(0, cur - 1)}</span>`;
-    await updateDoc(prayerRef, {
-      likes: increment(-1),
-      liked: false
-      // likers는 유지 (기록 보존) — 필요하면 arrayRemove도 가능
-    });
+
+    const updateData = { likes: increment(-1), liked: false };
+    if (myName) updateData.likers = arrayRemove(myName);
+    await updateDoc(prayerRef, updateData);
+    delete btn.dataset.myLikerName;
   }
 };
 
