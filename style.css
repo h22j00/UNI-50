@@ -223,10 +223,10 @@ body {
 
 .empty-state { text-align: center; animation: fadeIn .5s ease; padding: 20px; }
 .uni-logo {
-  width: min(260px, 70vw);
-  margin: 0 auto 24px;
-  opacity: 0.75;
-  filter: drop-shadow(0 0 12px rgba(200,196,188,0.2));
+  width: min(280px, 65vw);
+  margin: 0 auto 28px;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 16px rgba(255,255,255,0.15));
 }
 .uni-logo svg { width: 100%; height: auto; }
 .empty-state h2 {
