@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UNI+ 50일 기도</title>
+<title>기도 카드</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -53,9 +53,9 @@
     <div class="panel-header">
       <div class="panel-avatar-lg" id="panel-avatar"></div>
       <div class="panel-info">
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div class="panel-name-row">
           <h1 id="panel-name"></h1>
-          <button class="btn btn-edit" style="padding:4px 10px;font-size:11px;" onclick="openEditPersonModal()">✏️ 편집</button>
+          <button class="btn btn-edit" style="padding:4px 10px;font-size:11px;flex-shrink:0;" onclick="openEditPersonModal()">✏️ 편집</button>
         </div>
         <p id="panel-sub">기도 카드</p>
         <span class="glow-badge" id="glow-badge" style="display:none">✦ 이번 주 기도함</span>
