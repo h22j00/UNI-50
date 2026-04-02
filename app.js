@@ -5,7 +5,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import {
   getFirestore, collection, doc,
   onSnapshot, addDoc, updateDoc, deleteDoc, getDocs,
-  query, orderBy, serverTimestamp, increment, arrayUnion, arrayRemove, getDoc
+  serverTimestamp, increment, arrayUnion, arrayRemove, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -20,7 +20,6 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
-// ── 이모지 목록 ──────────────────────────────────
 const EMOJIS = [
   '🙏','✝️','⛪','💒','📖','🕯️','🕊️','⭐',
   '🌿','🌸','🌻','🌺','🍀','🌱','🌾','🍃',
@@ -38,15 +37,19 @@ let editingPrayerId  = null;
 let editingPersonId  = null;
 let selectedEmoji    = '🙏';
 let prayersUnsub     = null;
-let commentPrayerRef = null;
-let commentUnsub     = null;
 let searchQuery      = '';
 
-// 하트 누른 사람 팝업 상태
 let likersPopupTimer = null;
 let likersPopupEl    = null;
 
-// ── 로딩 화면 제거 ────────────────────────────────
+// 댓글 바텀시트
+let commentSheetPersonId = null;
+let commentSheetPrayerId = null;
+let commentSheetUnsub    = null;
+let commentHoldTimer     = null;
+let editingCommentRef    = null;
+
+// ── 로딩 ────────────────────────────────────────
 function hideLoading() {
   document.getElementById('loading-screen').style.display = 'none';
   document.getElementById('sidebar').style.display        = 'flex';
@@ -68,9 +71,6 @@ onSnapshot(personsCol, snapshot => {
   syncAllGlow();
 });
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  글로우 동기화
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function syncAllGlow() {
   persons.forEach(person => {
     onSnapshot(collection(db, 'persons', person.id, 'prayers'), snap => {
@@ -82,15 +82,10 @@ function syncAllGlow() {
   });
 }
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  일요일 글로우 초기화
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function checkSundayReset() {
   if (new Date().getDay() !== 0) return;
   const todayStr  = new Date().toDateString();
-  const lastReset = localStorage.getItem('last-sunday-reset');
-  if (lastReset === todayStr) return;
-
+  if (localStorage.getItem('last-sunday-reset') === todayStr) return;
   for (const person of persons) {
     const snap = await getDocs(collection(db, 'persons', person.id, 'prayers'));
     for (const pd of snap.docs) {
@@ -101,37 +96,19 @@ async function checkSundayReset() {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  검색
+//  검색 & 사이드바
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-window.filterPersons = (val) => {
-  searchQuery = val.trim();
-  renderSidebar();
-};
+window.filterPersons = (val) => { searchQuery = val.trim(); renderSidebar(); };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  사이드바 렌더
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function renderSidebar() {
   const list = document.getElementById('person-list');
   list.innerHTML = '';
-
-  const filtered = searchQuery
-    ? persons.filter(p => p.name.includes(searchQuery))
-    : persons;
-
+  const filtered = searchQuery ? persons.filter(p => p.name.includes(searchQuery)) : persons;
   filtered.forEach(p => {
     const hasGlow = p.hasGlow || false;
     const btn = document.createElement('button');
-    btn.className = 'person-btn'
-      + (p.id === selectedPersonId ? ' active'  : '')
-      + (hasGlow                   ? ' glowing' : '');
-    btn.innerHTML = `
-      <div class="person-avatar">
-        ${p.icon}
-        <span class="glow-dot"></span>
-      </div>
-      <span class="person-name">${p.name}</span>
-    `;
+    btn.className = 'person-btn' + (p.id === selectedPersonId ? ' active' : '') + (hasGlow ? ' glowing' : '');
+    btn.innerHTML = `<div class="person-avatar">${p.icon}<span class="glow-dot"></span></div><span class="person-name">${p.name}</span>`;
     btn.onclick = () => selectPerson(p.id);
     list.appendChild(btn);
   });
@@ -146,8 +123,8 @@ function selectPerson(id) {
   const person = persons.find(p => p.id === id);
   if (!person) return;
 
-  document.getElementById('all-panel').style.display    = 'none';
-  document.getElementById('empty-state').style.display  = 'none';
+  document.getElementById('all-panel').style.display   = 'none';
+  document.getElementById('empty-state').style.display = 'none';
   document.getElementById('all-view-btn').classList.remove('active');
 
   const panel = document.getElementById('person-panel');
@@ -160,8 +137,7 @@ function selectPerson(id) {
   renderSidebar();
 
   if (prayersUnsub) prayersUnsub();
-  const pCol = collection(db, 'persons', id, 'prayers');
-  prayersUnsub = onSnapshot(pCol, snapshot => {
+  prayersUnsub = onSnapshot(collection(db, 'persons', id, 'prayers'), snapshot => {
     person.prayers = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     person.hasGlow = person.prayers.some(pr => pr.glow);
     renderSidebar();
@@ -207,7 +183,6 @@ window.openAllView = async () => {
       allPrayers.push({ id: d.id, personId: person.id, personName: person.name, personIcon: person.icon, ...d.data() });
     });
   }
-
   allPrayers.sort((a, b) => {
     const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
     const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
@@ -218,12 +193,57 @@ window.openAllView = async () => {
     container.innerHTML = '<div class="no-cards"><p>아직 기도문이 없습니다 🙏</p></div>';
     return;
   }
-
   renderAllCards(allPrayers);
 };
 
 let allCurrentSlide = 0;
 let allPrayersCache = [];
+
+function buildCardHtml(pr, dotsHtml, showPersonInfo) {
+  const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
+  const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const likerNames = (pr.likers || []).join(', ');
+  const personInfo = showPersonInfo ? `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <span style="font-size:22px;">${pr.personIcon}</span>
+      <span style="font-size:13px;font-weight:500;">${pr.personName}</span>
+      <span class="card-date" style="margin:0;margin-left:auto;">${dateStr}</span>
+    </div>` : `<div class="card-date">${dateStr}</div>`;
+
+  const editDeleteBtns = !showPersonInfo ? `
+    <button class="btn btn-edit" onclick="openEditModal('${pr.id}')">✏️</button>
+    <button class="btn btn-danger" onclick="deletePrayer('${pr.id}')">🗑️</button>` : '';
+
+  const pid = showPersonInfo ? pr.personId : pr.personId || '';
+
+  return `
+    <div class="prayer-card">
+      ${personInfo}
+      <div class="card-content">${escHtml(pr.text)}</div>
+      <div class="card-footer">
+        <div class="slider-dots">${dotsHtml}</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="heart-btn ${pr.liked ? 'liked' : ''}"
+            onclick="toggleLike('${pid}','${pr.id}',this)"
+            onmousedown="startLikersHold(event,'${pid}','${pr.id}')"
+            onmouseup="cancelLikersHold()" onmouseleave="cancelLikersHold()"
+            ontouchstart="startLikersHold(event,'${pid}','${pr.id}')"
+            ontouchend="cancelLikersHold()"
+            data-likers="${escAttr(likerNames)}">
+            ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
+          </button>
+          <button class="comment-bubble-btn"
+            onmousedown="startCommentHold(event,'${pid}','${pr.id}')"
+            onmouseup="cancelCommentHold()" onmouseleave="cancelCommentHold()"
+            ontouchstart="startCommentHold(event,'${pid}','${pr.id}')"
+            ontouchend="cancelCommentHold()">
+            💬
+          </button>
+          ${editDeleteBtns}
+        </div>
+      </div>
+    </div>`;
+}
 
 function renderAllCards(prayers) {
   allPrayersCache = prayers;
@@ -234,164 +254,21 @@ function renderAllCards(prayers) {
     `<span class="dot ${i === allCurrentSlide ? 'active' : ''}" onclick="goAllSlide(${i})"></span>`
   ).join('');
 
-  const cardsHtml = prayers.map(pr => {
-    const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
-    const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-    const commentContainerId = `all-comments-${pr.personId}-${pr.id}`;
-    const likerNames = (pr.likers || []).join(', ');
-    return `
-      <div class="prayer-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-          <span style="font-size:22px;">${pr.personIcon}</span>
-          <span style="font-size:13px;font-weight:500;">${pr.personName}</span>
-          <span class="card-date" style="margin:0;margin-left:auto;">${dateStr}</span>
-        </div>
-        <div class="card-content">${escHtml(pr.text)}</div>
-        <div class="card-footer">
-          <div class="slider-dots">${dotsHtml}</div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <button class="heart-btn ${pr.liked ? 'liked' : ''}"
-              onclick="toggleLike('${pr.personId}','${pr.id}',this)"
-              onmousedown="startLikersHold(event,'${pr.personId}','${pr.id}')"
-              onmouseup="cancelLikersHold()"
-              onmouseleave="cancelLikersHold()"
-              ontouchstart="startLikersHold(event,'${pr.personId}','${pr.id}')"
-              ontouchend="cancelLikersHold()"
-              data-likers="${escAttr(likerNames)}"
-              title="길게 누르면 누가 하트 눌렀는지 확인">
-              ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
-            </button>
-          </div>
-        </div>
-        <div class="inline-comments-section">
-          <div class="inline-comments-header">
-            <span>💬 댓글</span>
-            <button class="add-comment-btn" onclick="openCommentInput('${pr.personId}','${pr.id}','${commentContainerId}')">＋ 작성</button>
-          </div>
-          <div id="${commentContainerId}" class="inline-comments-container"></div>
-        </div>
-      </div>`;
-  }).join('');
+  const cardsHtml = prayers.map(pr => buildCardHtml(pr, dotsHtml, true)).join('');
 
   container.innerHTML = `
     <div class="slider-wrap">
-      <div class="cards-track" style="transform:translateX(-${allCurrentSlide * 100}%)">
-        ${cardsHtml}
-      </div>
+      <div class="cards-track" style="transform:translateX(-${allCurrentSlide * 100}%)">${cardsHtml}</div>
     </div>
     <div class="slider-nav" style="justify-content:center;margin-top:12px;">
       <button class="nav-btn" onclick="prevAllSlide()" ${allCurrentSlide===0?'disabled':''}>‹</button>
       <button class="nav-btn" onclick="nextAllSlide()" ${allCurrentSlide===prayers.length-1?'disabled':''}>›</button>
     </div>`;
-
-  prayers.forEach(pr => {
-    renderInlineComments(pr.personId, pr.id, `all-comments-${pr.personId}-${pr.id}`);
-  });
 }
 
 window.goAllSlide   = i => { allCurrentSlide = i; renderAllCards(allPrayersCache); };
 window.prevAllSlide = () => { if (allCurrentSlide > 0) { allCurrentSlide--; renderAllCards(allPrayersCache); } };
 window.nextAllSlide = () => { if (allCurrentSlide < allPrayersCache.length - 1) { allCurrentSlide++; renderAllCards(allPrayersCache); } };
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  댓글 인라인 렌더
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const commentUnsubMap = {};
-const commentSlideMap = {};
-const commentDataMap  = {};
-
-function renderInlineComments(personId, prayerId, containerId) {
-  if (commentUnsubMap[prayerId]) commentUnsubMap[prayerId]();
-  if (!commentSlideMap[prayerId]) commentSlideMap[prayerId] = 0;
-
-  const commentsCol = collection(doc(db, 'persons', personId, 'prayers', prayerId), 'comments');
-  commentUnsubMap[prayerId] = onSnapshot(commentsCol, snap => {
-    commentDataMap[prayerId] = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
-    if (commentSlideMap[prayerId] >= commentDataMap[prayerId].length)
-      commentSlideMap[prayerId] = Math.max(0, commentDataMap[prayerId].length - 1);
-    drawCommentSlide(prayerId, containerId, personId);
-  });
-}
-
-function drawCommentSlide(prayerId, containerId, personId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  const comments = commentDataMap[prayerId] || [];
-  const idx      = commentSlideMap[prayerId] || 0;
-
-  if (comments.length === 0) {
-    container.innerHTML = '<p class="no-comment-text">아직 댓글이 없어요</p>';
-    return;
-  }
-
-  const c = comments[idx];
-  const t = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
-  const timeStr = `${t.getMonth()+1}/${t.getDate()} ${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}`;
-
-  const dotsHtml = comments.map((_, i) =>
-    `<span class="dot ${i===idx?'active':''}" style="width:5px;height:5px;cursor:pointer;" onclick="moveCommentSlide('${prayerId}','${containerId}','${personId}',${i})"></span>`
-  ).join('');
-
-  container.innerHTML = `
-    <div class="inline-comment">
-      <div class="comment-header">
-        <span class="comment-author">${escHtml(c.author || '익명')}</span>
-        <span class="comment-time">${timeStr}</span>
-        <span class="comment-header-spacer"></span>
-        <div class="comment-actions">
-          <button class="comment-action-btn" onclick="openEditCommentModal('${personId}','${prayerId}','${c._docId}','${escAttr(c.text)}','${containerId}')" title="수정">✏️</button>
-          <button class="comment-action-btn danger" onclick="deleteComment('${personId}','${prayerId}','${c._docId}')" title="삭제">🗑️</button>
-        </div>
-      </div>
-      <div class="comment-text">${escHtml(c.text)}</div>
-      ${comments.length > 1 ? `
-      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;">
-        <button class="c-nav" onclick="moveCommentSlide('${prayerId}','${containerId}','${personId}',${idx-1})" ${idx===0?'disabled':''}>‹</button>
-        <div style="display:flex;gap:4px;">${dotsHtml}</div>
-        <button class="c-nav" onclick="moveCommentSlide('${prayerId}','${containerId}','${personId}',${idx+1})" ${idx===comments.length-1?'disabled':''}>›</button>
-      </div>` : ''}
-    </div>`;
-}
-
-window.moveCommentSlide = (prayerId, containerId, personId, i) => {
-  const comments = commentDataMap[prayerId] || [];
-  if (i < 0 || i >= comments.length) return;
-  commentSlideMap[prayerId] = i;
-  drawCommentSlide(prayerId, containerId, personId);
-};
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  댓글 삭제
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-window.deleteComment = async (personId, prayerId, commentId) => {
-  if (!confirm('이 댓글을 삭제할까요?')) return;
-  const commentRef = doc(db, 'persons', personId, 'prayers', prayerId, 'comments', commentId);
-  await deleteDoc(commentRef);
-};
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  댓글 수정 모달
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-let editingCommentRef = null;
-
-window.openEditCommentModal = (personId, prayerId, commentId, currentText, containerId) => {
-  editingCommentRef = doc(db, 'persons', personId, 'prayers', prayerId, 'comments', commentId);
-  document.getElementById('edit-comment-text').value = currentText;
-  document.getElementById('edit-comment-modal').classList.add('open');
-  setTimeout(() => document.getElementById('edit-comment-text').focus(), 200);
-};
-
-window.closeEditCommentModal = () => {
-  document.getElementById('edit-comment-modal').classList.remove('open');
-  editingCommentRef = null;
-};
-
-window.saveEditComment = async () => {
-  const text = document.getElementById('edit-comment-text').value.trim();
-  if (!text || !editingCommentRef) return;
-  await updateDoc(editingCommentRef, { text });
-  closeEditCommentModal();
-};
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  개인 카드 렌더
@@ -410,65 +287,22 @@ function renderCards(prayers, personId) {
     `<span class="dot ${i === currentSlide ? 'active' : ''}" onclick="goSlide(${i})"></span>`
   ).join('');
 
-  const cardsHtml = sorted.map(pr => {
-    const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
-    const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-    const commentContainerId = `comments-${pr.id}`;
-    const likerNames = (pr.likers || []).join(', ');
-    return `
-      <div class="prayer-card">
-        <div class="card-date">${dateStr}</div>
-        <div class="card-content">${escHtml(pr.text)}</div>
-        <div class="card-footer">
-          <div class="slider-dots">${dotsHtml}</div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <button class="heart-btn ${pr.liked ? 'liked' : ''}"
-              onclick="toggleLike('${personId}','${pr.id}',this)"
-              onmousedown="startLikersHold(event,'${personId}','${pr.id}')"
-              onmouseup="cancelLikersHold()"
-              onmouseleave="cancelLikersHold()"
-              ontouchstart="startLikersHold(event,'${personId}','${pr.id}')"
-              ontouchend="cancelLikersHold()"
-              data-likers="${escAttr(likerNames)}"
-              title="길게 누르면 누가 하트 눌렀는지 확인">
-              ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
-            </button>
-            <button class="btn btn-edit" onclick="openEditModal('${pr.id}')">✏️</button>
-            <button class="btn btn-danger" onclick="deletePrayer('${pr.id}')">🗑️</button>
-          </div>
-        </div>
-        <div class="inline-comments-section">
-          <div class="inline-comments-header">
-            <span>💬 댓글</span>
-            <button class="add-comment-btn" onclick="openCommentInput('${personId}','${pr.id}','${commentContainerId}')">＋ 작성</button>
-          </div>
-          <div id="${commentContainerId}" class="inline-comments-container"></div>
-        </div>
-      </div>`;
-  }).join('');
+  // personId를 pr에 주입
+  const withPid = sorted.map(pr => ({ ...pr, personId }));
+  const cardsHtml = withPid.map(pr => buildCardHtml(pr, dotsHtml, false)).join('');
 
   container.innerHTML = `
     <div class="slider-wrap">
-      <div class="cards-track" id="cards-track" style="transform:translateX(-${currentSlide * 100}%)">
-        ${cardsHtml}
-      </div>
+      <div class="cards-track" id="cards-track" style="transform:translateX(-${currentSlide * 100}%)">${cardsHtml}</div>
     </div>
     <div class="slider-nav" style="justify-content:center;margin-top:12px;">
       <button class="nav-btn" onclick="prevSlide()" ${currentSlide===0?'disabled':''}>‹</button>
       <button class="nav-btn" onclick="nextSlide()" ${currentSlide===sorted.length-1?'disabled':''}>›</button>
     </div>`;
-
-  sorted.forEach(pr => {
-    renderInlineComments(personId, pr.id, `comments-${pr.id}`);
-  });
 }
 
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function escAttr(str) {
-  return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
+function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(str) { return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 window.goSlide   = i => { currentSlide = i; const p = persons.find(p => p.id === selectedPersonId); if (p) renderCards(p.prayers, p.id); };
 window.prevSlide = () => { if (currentSlide > 0) { currentSlide--; const p = persons.find(p => p.id === selectedPersonId); if (p) renderCards(p.prayers, p.id); } };
@@ -478,17 +312,138 @@ window.nextSlide = () => {
 };
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  하트 (좋아요) + 누가 눌렀나 팝업
+//  💬 댓글 버튼 꾹 누르기 → 바텀시트
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+window.startCommentHold = (e, personId, prayerId) => {
+  const btn = e.currentTarget;
+  btn._commentFired = false;
+  commentHoldTimer = setTimeout(() => {
+    btn._commentFired = true;
+    openCommentSheet(personId, prayerId);
+  }, 500);
+};
+window.cancelCommentHold = () => {
+  if (commentHoldTimer) { clearTimeout(commentHoldTimer); commentHoldTimer = null; }
+};
 
-// 이름 입력 커스텀 모달 — Promise 반환
+// ── 바텀시트 열기 ────────────────────────────────
+function openCommentSheet(personId, prayerId) {
+  commentSheetPersonId = personId;
+  commentSheetPrayerId = prayerId;
+
+  if (commentSheetUnsub) { commentSheetUnsub(); commentSheetUnsub = null; }
+
+  const sheet    = document.getElementById('comment-sheet');
+  const listEl   = document.getElementById('sheet-comment-list');
+  const inputEl  = document.getElementById('sheet-comment-text');
+  const authorEl = document.getElementById('sheet-comment-author');
+
+  inputEl.value  = '';
+  authorEl.value = '';
+  listEl.innerHTML = '<p class="no-comment-text" style="padding:28px 0;text-align:center;">불러오는 중...</p>';
+
+  sheet.classList.add('open');
+  document.getElementById('sheet-backdrop').classList.add('open');
+
+  // 실시간 댓글 리스너
+  const commentsCol = collection(doc(db, 'persons', personId, 'prayers', prayerId), 'comments');
+  commentSheetUnsub = onSnapshot(commentsCol, snap => {
+    const comments = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    renderSheetComments(comments, personId, prayerId);
+  });
+
+  setTimeout(() => authorEl.focus(), 420);
+}
+
+function renderSheetComments(comments, personId, prayerId) {
+  const listEl = document.getElementById('sheet-comment-list');
+  if (comments.length === 0) {
+    listEl.innerHTML = '<p class="no-comment-text" style="padding:28px 0;text-align:center;">첫 댓글을 남겨보세요 🙏</p>';
+    return;
+  }
+
+  const sorted = [...comments].sort((a, b) => {
+    const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+    return ta - tb; // 오래된 것부터 (위→아래)
+  });
+
+  listEl.innerHTML = sorted.map(c => {
+    const t = c.createdAt?.toDate ? c.createdAt.toDate() : new Date();
+    const timeStr = `${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    return `
+      <div class="sheet-comment-item">
+        <div class="sheet-comment-meta">
+          <span class="sheet-comment-author">${escHtml(c.author || '익명')}</span>
+          <span class="sheet-comment-time">${timeStr}</span>
+          <span style="flex:1"></span>
+          <button class="comment-action-btn" onclick="openEditSheetComment('${personId}','${prayerId}','${c._docId}','${escAttr(c.text)}')" title="수정">✏️</button>
+          <button class="comment-action-btn danger" onclick="deleteSheetComment('${personId}','${prayerId}','${c._docId}')" title="삭제">🗑️</button>
+        </div>
+        <div class="sheet-comment-text">${escHtml(c.text)}</div>
+      </div>`;
+  }).join('');
+
+  // 최신 댓글로 스크롤
+  listEl.scrollTop = listEl.scrollHeight;
+}
+
+window.closeCommentSheet = () => {
+  document.getElementById('comment-sheet').classList.remove('open');
+  document.getElementById('sheet-backdrop').classList.remove('open');
+  if (commentSheetUnsub) { commentSheetUnsub(); commentSheetUnsub = null; }
+  commentSheetPersonId = null;
+  commentSheetPrayerId = null;
+};
+
+window.saveSheetComment = async () => {
+  const text   = document.getElementById('sheet-comment-text').value.trim();
+  const author = document.getElementById('sheet-comment-author').value.trim() || '익명';
+  if (!text || !commentSheetPersonId) return;
+  const saveBtn = document.getElementById('sheet-save-btn');
+  saveBtn.disabled = true;
+  await addDoc(
+    collection(doc(db, 'persons', commentSheetPersonId, 'prayers', commentSheetPrayerId), 'comments'),
+    { text, author, createdAt: serverTimestamp() }
+  );
+  document.getElementById('sheet-comment-text').value = '';
+  saveBtn.disabled = false;
+  document.getElementById('sheet-comment-text').focus();
+};
+
+// 댓글 삭제 (시트 내)
+window.deleteSheetComment = async (personId, prayerId, commentId) => {
+  if (!confirm('이 댓글을 삭제할까요?')) return;
+  await deleteDoc(doc(db, 'persons', personId, 'prayers', prayerId, 'comments', commentId));
+};
+
+// 댓글 수정
+window.openEditSheetComment = (personId, prayerId, commentId, currentText) => {
+  editingCommentRef = doc(db, 'persons', personId, 'prayers', prayerId, 'comments', commentId);
+  document.getElementById('edit-comment-text').value = currentText;
+  document.getElementById('edit-comment-modal').classList.add('open');
+  setTimeout(() => document.getElementById('edit-comment-text').focus(), 200);
+};
+window.closeEditCommentModal = () => {
+  document.getElementById('edit-comment-modal').classList.remove('open');
+  editingCommentRef = null;
+};
+window.saveEditComment = async () => {
+  const text = document.getElementById('edit-comment-text').value.trim();
+  if (!text || !editingCommentRef) return;
+  await updateDoc(editingCommentRef, { text });
+  closeEditCommentModal();
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  하트 + 길게누르기 팝업
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 function promptLikerName() {
   return new Promise(resolve => {
-    const overlay = document.getElementById('liker-name-modal');
-    const input   = document.getElementById('liker-name-input');
-    const btnOk   = document.getElementById('liker-name-ok');
+    const overlay   = document.getElementById('liker-name-modal');
+    const input     = document.getElementById('liker-name-input');
+    const btnOk     = document.getElementById('liker-name-ok');
     const btnCancel = document.getElementById('liker-name-cancel');
-
     input.value = '';
     overlay.classList.add('open');
     setTimeout(() => input.focus(), 250);
@@ -500,14 +455,10 @@ function promptLikerName() {
       overlay.removeEventListener('click', onOverlay);
       document.removeEventListener('keydown', onKey);
     };
-    const onOk = () => { cleanup(); resolve(input.value.trim() || '익명'); };
-    const onCancel = () => { cleanup(); resolve(null); };
-    const onOverlay = (e) => { if (e.target === overlay) onCancel(); };
-    const onKey = (e) => {
-      if (e.key === 'Enter') onOk();
-      if (e.key === 'Escape') onCancel();
-    };
-
+    const onOk      = () => { cleanup(); resolve(input.value.trim() || '익명'); };
+    const onCancel  = () => { cleanup(); resolve(null); };
+    const onOverlay = e => { if (e.target === overlay) onCancel(); };
+    const onKey     = e => { if (e.key === 'Enter') onOk(); if (e.key === 'Escape') onCancel(); };
     btnOk.addEventListener('click', onOk);
     btnCancel.addEventListener('click', onCancel);
     overlay.addEventListener('click', onOverlay);
@@ -515,35 +466,23 @@ function promptLikerName() {
   });
 }
 
-// 하트 토글
 window.toggleLike = async (personId, prayerId, btn) => {
   if (btn._holdFired) { btn._holdFired = false; return; }
-
   const prayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
-  const isLiked = btn.classList.contains('liked');
-
+  const isLiked   = btn.classList.contains('liked');
   if (!isLiked) {
     const displayName = await promptLikerName();
-    if (displayName === null) return; // 취소
-
-    // 이름을 버튼에 저장 (나중에 취소할 때 제거용)
+    if (displayName === null) return;
     btn.dataset.myLikerName = displayName;
-
     btn.classList.add('liked');
     const cur = parseInt(btn.querySelector('span').textContent) || 0;
     btn.innerHTML = `❤️ <span>${cur + 1}</span>`;
-    await updateDoc(prayerRef, {
-      likes: increment(1),
-      liked: true,
-      likers: arrayUnion(displayName)
-    });
+    await updateDoc(prayerRef, { likes: increment(1), liked: true, likers: arrayUnion(displayName) });
   } else {
-    // 취소 시 본인 이름 likers에서 제거
     const myName = btn.dataset.myLikerName || null;
     btn.classList.remove('liked');
     const cur = parseInt(btn.querySelector('span').textContent) || 0;
     btn.innerHTML = `🤍 <span>${Math.max(0, cur - 1)}</span>`;
-
     const updateData = { likes: increment(-1), liked: false };
     if (myName) updateData.likers = arrayRemove(myName);
     await updateDoc(prayerRef, updateData);
@@ -551,58 +490,40 @@ window.toggleLike = async (personId, prayerId, btn) => {
   }
 };
 
-// 길게 누르기 — 하트 누른 사람 보기
 window.startLikersHold = (e, personId, prayerId) => {
   const btn = e.currentTarget;
   btn._holdFired = false;
-
   likersPopupTimer = setTimeout(async () => {
     btn._holdFired = true;
-    const prayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
-    const snap = await getDoc(prayerRef);
+    const snap   = await getDoc(doc(db, 'persons', personId, 'prayers', prayerId));
     const likers = snap.data()?.likers || [];
-
     showLikersPopup(btn, likers);
-  }, 600); // 600ms 길게 누르기
+  }, 600);
 };
-
-window.cancelLikersHold = () => {
-  if (likersPopupTimer) { clearTimeout(likersPopupTimer); likersPopupTimer = null; }
-};
+window.cancelLikersHold = () => { if (likersPopupTimer) { clearTimeout(likersPopupTimer); likersPopupTimer = null; } };
 
 function showLikersPopup(anchorBtn, likers) {
-  // 기존 팝업 제거
   if (likersPopupEl) likersPopupEl.remove();
-
   const popup = document.createElement('div');
   popup.className = 'likers-popup';
-
-  if (likers.length === 0) {
-    popup.innerHTML = `<div class="likers-popup-title">❤️ 하트 누른 사람</div><div class="likers-empty">아직 없어요</div>`;
-  } else {
-    const items = likers.map(name => `<div class="liker-item">❤️ ${escHtml(name)}</div>`).join('');
-    popup.innerHTML = `<div class="likers-popup-title">❤️ 하트 누른 사람 (${likers.length}명)</div>${items}`;
-  }
-
+  popup.innerHTML = likers.length === 0
+    ? `<div class="likers-popup-title">❤️ 하트 누른 사람</div><div class="likers-empty">아직 없어요</div>`
+    : `<div class="likers-popup-title">❤️ 하트 누른 사람 (${likers.length}명)</div>`
+      + likers.map(n => `<div class="liker-item">❤️ ${escHtml(n)}</div>`).join('');
   document.body.appendChild(popup);
   likersPopupEl = popup;
 
-  // 위치 계산
   const rect = anchorBtn.getBoundingClientRect();
   popup.style.left = rect.left + 'px';
   popup.style.top  = (rect.top - popup.offsetHeight - 8) + 'px';
-
-  // 화면 밖으로 나가면 위치 보정
   const popRect = popup.getBoundingClientRect();
   if (popRect.top < 8) popup.style.top = (rect.bottom + 8) + 'px';
   if (popRect.right > window.innerWidth - 8) popup.style.left = (window.innerWidth - popRect.width - 8) + 'px';
 
-  // 바깥 클릭 / 터치로 닫기
   setTimeout(() => {
-    const close = (ev) => {
+    const close = ev => {
       if (!popup.contains(ev.target)) {
-        popup.remove();
-        likersPopupEl = null;
+        popup.remove(); likersPopupEl = null;
         document.removeEventListener('mousedown', close);
         document.removeEventListener('touchstart', close);
       }
@@ -613,40 +534,7 @@ function showLikersPopup(anchorBtn, likers) {
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  댓글 인라인 입력
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-window.openCommentInput = (personId, prayerId, containerId) => {
-  commentPrayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
-  document.getElementById('comment-text').value  = '';
-  document.getElementById('comment-author').value = '';
-  document.getElementById('comment-modal').classList.add('open');
-  document.getElementById('comment-modal').dataset.containerId = containerId;
-  setTimeout(() => document.getElementById('comment-author').focus(), 200);
-};
-
-window.openCommentModal = (personId, prayerId) => {
-  commentPrayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
-  document.getElementById('comment-text').value = '';
-  document.getElementById('comment-modal').classList.add('open');
-  setTimeout(() => document.getElementById('comment-text').focus(), 200);
-};
-
-window.closeCommentModal = () => {
-  document.getElementById('comment-modal').classList.remove('open');
-  if (commentUnsub) { commentUnsub(); commentUnsub = null; }
-};
-
-window.saveComment = async () => {
-  const text   = document.getElementById('comment-text').value.trim();
-  const author = document.getElementById('comment-author').value.trim() || '익명';
-  if (!text) return;
-  await addDoc(collection(commentPrayerRef, 'comments'), { text, author, createdAt: serverTimestamp() });
-  document.getElementById('comment-text').value = '';
-  document.getElementById('comment-modal').classList.remove('open');
-};
-
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  기도문 작성 / 수정
+//  기도문 작성 / 수정 / 삭제
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 window.openWriteModal = () => {
   editingPrayerId = null;
@@ -655,7 +543,6 @@ window.openWriteModal = () => {
   document.getElementById('write-modal').classList.add('open');
   setTimeout(() => document.getElementById('prayer-text').focus(), 200);
 };
-
 window.openEditModal = prayerId => {
   const person = persons.find(p => p.id === selectedPersonId);
   const prayer = person?.prayers.find(pr => pr.id === prayerId);
@@ -666,9 +553,7 @@ window.openEditModal = prayerId => {
   document.getElementById('write-modal').classList.add('open');
   setTimeout(() => document.getElementById('prayer-text').focus(), 200);
 };
-
 window.closeWriteModal = () => document.getElementById('write-modal').classList.remove('open');
-
 window.savePrayer = async () => {
   const text = document.getElementById('prayer-text').value.trim();
   if (!text) { alert('기도문을 입력해 주세요.'); return; }
@@ -680,7 +565,6 @@ window.savePrayer = async () => {
   }
   closeWriteModal();
 };
-
 window.deletePrayer = async prayerId => {
   if (!confirm('이 기도 카드를 삭제할까요?')) return;
   await deleteDoc(doc(db, 'persons', selectedPersonId, 'prayers', prayerId));
@@ -693,7 +577,7 @@ window.deletePrayer = async prayerId => {
 function renderEmojiPicker(current) {
   const picker = document.getElementById('emoji-picker');
   picker.innerHTML = EMOJIS.map((e, i) =>
-    `<button class="emoji-btn ${e===current?'selected':''}" data-emoji="${i}" title="${e}">${e}</button>`
+    `<button class="emoji-btn ${e===current?'selected':''}" data-emoji="${i}">${e}</button>`
   ).join('');
   picker.onclick = e => {
     const btn = e.target.closest('.emoji-btn');
@@ -703,10 +587,8 @@ function renderEmojiPicker(current) {
     btn.classList.add('selected');
   };
 }
-
 window.openAddPersonModal = () => {
-  editingPersonId = null;
-  selectedEmoji   = '🙏';
+  editingPersonId = null; selectedEmoji = '🙏';
   document.getElementById('new-person-name').value           = '';
   document.getElementById('add-person-title').textContent    = '＋ 새 사람 추가';
   document.getElementById('add-person-save-btn').textContent = '추가';
@@ -714,12 +596,10 @@ window.openAddPersonModal = () => {
   document.getElementById('add-person-modal').classList.add('open');
   setTimeout(() => document.getElementById('new-person-name').focus(), 200);
 };
-
 window.openEditPersonModal = () => {
   const person = persons.find(p => p.id === selectedPersonId);
   if (!person) return;
-  editingPersonId = person.id;
-  selectedEmoji   = person.icon;
+  editingPersonId = person.id; selectedEmoji = person.icon;
   document.getElementById('new-person-name').value           = person.name;
   document.getElementById('add-person-title').textContent    = '✏️ 정보 수정';
   document.getElementById('add-person-save-btn').textContent = '저장';
@@ -727,9 +607,7 @@ window.openEditPersonModal = () => {
   document.getElementById('add-person-modal').classList.add('open');
   setTimeout(() => document.getElementById('new-person-name').focus(), 200);
 };
-
 window.closeAddPersonModal = () => document.getElementById('add-person-modal').classList.remove('open');
-
 window.savePerson = async () => {
   const name = document.getElementById('new-person-name').value.trim();
   if (!name) { alert('이름을 입력해 주세요.'); return; }
@@ -748,20 +626,16 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
     if (e.target === overlay) {
       overlay.classList.remove('open');
-      if (overlay.id === 'comment-modal' && commentUnsub) { commentUnsub(); commentUnsub = null; }
-      if (overlay.id === 'edit-comment-modal') { editingCommentRef = null; }
+      if (overlay.id === 'edit-comment-modal') editingCommentRef = null;
     }
   });
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay.open').forEach(m => {
-      m.classList.remove('open');
-      if (m.id === 'comment-modal' && commentUnsub) { commentUnsub(); commentUnsub = null; }
-    });
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
     if (likersPopupEl) { likersPopupEl.remove(); likersPopupEl = null; }
+    closeCommentSheet();
   }
 });
 
-// ── 시작 ─────────────────────────────────────────
 checkSundayReset().catch(console.error);
