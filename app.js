@@ -337,6 +337,7 @@ function drawCommentSlide(prayerId, containerId, personId) {
       <div class="comment-header">
         <span class="comment-author">${escHtml(c.author || '익명')}</span>
         <span class="comment-time">${timeStr}</span>
+        <span class="comment-header-spacer"></span>
         <div class="comment-actions">
           <button class="comment-action-btn" onclick="openEditCommentModal('${personId}','${prayerId}','${c._docId}','${escAttr(c.text)}','${containerId}')" title="수정">✏️</button>
           <button class="comment-action-btn danger" onclick="deleteComment('${personId}','${prayerId}','${c._docId}')" title="삭제">🗑️</button>
