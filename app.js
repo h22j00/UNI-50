@@ -240,7 +240,7 @@ function buildCardHtml(pr, dotsHtml, showPersonInfo) {
             onmouseup="cancelCommentHold()" onmouseleave="cancelCommentHold()"
             ontouchstart="startCommentHold(event,'${pid}','${pr.id}')"
             ontouchend="cancelCommentHold()">
-            💬 <span class="comment-count">${commentCount > 0 ? commentCount : ''}</span>
+            💬 <span class="comment-count">${commentCount}</span>
           </button>
           ${editDeleteBtns}
         </div>
@@ -311,7 +311,7 @@ function renderCards(prayers, personId) {
       if (!btn) return;
       const cnt = snap.size;
       const countEl = btn.querySelector('.comment-count');
-      if (countEl) countEl.textContent = cnt > 0 ? cnt : '';
+      if (countEl) countEl.textContent = cnt;
     });
   });
 }
