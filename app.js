@@ -243,7 +243,7 @@ function renderAllCards(prayers) {
 
   const cardsHtml = prayers.map(pr => {
     const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
-    const dateStr = `${d.getMonth()+1}/${d.getDate()}`;
+    const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
     const commentContainerId = `all-comments-${pr.personId}-${pr.id}`;
     return `
       <div class="prayer-card">
@@ -374,7 +374,7 @@ function renderCards(prayers, personId) {
 
   const cardsHtml = sorted.map(pr => {
     const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
-    const dateStr =  `${d.getMonth()+1}/${d.getDate()}`;
+    const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
     const commentContainerId = `comments-${pr.id}`;
     return `
       <div class="prayer-card">
