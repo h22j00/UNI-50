@@ -246,13 +246,7 @@ body {
 }
 .heart-btn:hover { border-color: #e06b6b; color: #e06b6b; }
 .heart-btn.liked { border-color: #e06b6b; color: #e06b6b; background: rgba(224,107,107,.08); }
-.heart-btn::after {
-  content: '길게 누르면 확인'; position: absolute; bottom: calc(100% + 6px); left: 50%;
-  transform: translateX(-50%); background: var(--surface2); border: 1px solid var(--border);
-  color: var(--text-muted); font-size: 10px; padding: 3px 8px; border-radius: 6px;
-  white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s;
-}
-.heart-btn:hover::after { opacity: 1; }
+
 
 /* ── 💬 댓글 버튼 ── */
 .comment-bubble-btn {
@@ -282,19 +276,7 @@ body {
   display: inline-block;
 }
 
-/* ── 하트 누른 사람 팝업 ── */
-.likers-popup {
-  position: fixed; z-index: 500;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 14px 16px;
-  min-width: 160px; max-width: 240px;
-  box-shadow: 0 8px 32px rgba(0,0,0,.5);
-  animation: popIn .2s cubic-bezier(.16,1,.3,1);
-}
-@keyframes popIn { from { opacity: 0; transform: scale(.9) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-.likers-popup-title { font-family: 'Noto Serif KR', serif; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); letter-spacing: 0.5px; }
-.liker-item { font-family: 'Noto Serif KR', serif; font-size: 13px; color: var(--text); padding: 4px 0; display: flex; align-items: center; gap: 6px; }
-.likers-empty { font-size: 12px; color: var(--text-muted); text-align: center; padding: 4px 0; }
+
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    댓글 바텀시트
@@ -474,17 +456,7 @@ body {
 .no-cards { text-align: center; padding: 40px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
 .no-cards p { color: var(--text-muted); font-size: 14px; line-height: 1.8; }
 
-/* ── 하트 이름 입력 모달 ── */
-.liker-modal { text-align: center; padding: 36px 32px 28px; max-width: 340px; }
-.liker-modal-icon { font-size: 40px; margin-bottom: 12px; animation: heartPop .4s cubic-bezier(.16,1,.3,1); display: block; }
-@keyframes heartPop { 0% { transform: scale(0.4); opacity: 0; } 70% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
-.liker-modal-title { font-family: 'Noto Serif KR', serif; font-size: 16px !important; margin-bottom: 6px !important; color: var(--text); }
-.liker-modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5; }
-.btn-heart-ok {
-  background: linear-gradient(135deg, #e06b6b, #c44d4d); color: #fff; font-weight: 500;
-  border: none; box-shadow: 0 4px 16px rgba(224,107,107,.35); transition: all .2s;
-}
-.btn-heart-ok:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(224,107,107,.45); }
+
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
