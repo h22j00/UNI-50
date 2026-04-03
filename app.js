@@ -39,9 +39,6 @@ let selectedEmoji    = '🙏';
 let prayersUnsub     = null;
 let searchQuery      = '';
 
-let likersPopupTimer = null;
-let likersPopupEl    = null;
-
 // 댓글 바텀시트
 let commentSheetPersonId = null;
 let commentSheetPrayerId = null;
@@ -203,7 +200,6 @@ let allPrayersCache = [];
 function buildCardHtml(pr, dotsHtml, showPersonInfo) {
   const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
   const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-  const likerNames = (pr.likers || []).join(', ');
   const commentCount = pr.commentCount || 0;
   const personInfo = showPersonInfo ? `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -227,11 +223,7 @@ function buildCardHtml(pr, dotsHtml, showPersonInfo) {
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <button class="heart-btn ${pr.liked ? 'liked' : ''}"
             onclick="toggleLike('${pid}','${pr.id}',this)"
-            onmousedown="startLikersHold(event,'${pid}','${pr.id}')"
-            onmouseup="cancelLikersHold()" onmouseleave="cancelLikersHold()"
-            ontouchstart="startLikersHold(event,'${pid}','${pr.id}')"
-            ontouchend="cancelLikersHold()"
-            data-likers="${escAttr(likerNames)}">
+            >
             ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
           </button>
           <button class="comment-bubble-btn"
@@ -453,100 +445,22 @@ window.saveEditComment = async () => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  하트 + 길게누르기 팝업
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-function promptLikerName() {
-  return new Promise(resolve => {
-    const overlay   = document.getElementById('liker-name-modal');
-    const input     = document.getElementById('liker-name-input');
-    const btnOk     = document.getElementById('liker-name-ok');
-    const btnCancel = document.getElementById('liker-name-cancel');
-    input.value = '';
-    overlay.classList.add('open');
-    setTimeout(() => input.focus(), 250);
-
-    const cleanup = () => {
-      overlay.classList.remove('open');
-      btnOk.removeEventListener('click', onOk);
-      btnCancel.removeEventListener('click', onCancel);
-      overlay.removeEventListener('click', onOverlay);
-      document.removeEventListener('keydown', onKey);
-    };
-    const onOk      = () => { cleanup(); resolve(input.value.trim() || '익명'); };
-    const onCancel  = () => { cleanup(); resolve(null); };
-    const onOverlay = e => { if (e.target === overlay) onCancel(); };
-    const onKey     = e => { if (e.key === 'Enter') onOk(); if (e.key === 'Escape') onCancel(); };
-    btnOk.addEventListener('click', onOk);
-    btnCancel.addEventListener('click', onCancel);
-    overlay.addEventListener('click', onOverlay);
-    document.addEventListener('keydown', onKey);
-  });
-}
-
 window.toggleLike = async (personId, prayerId, btn) => {
-  if (btn._holdFired) { btn._holdFired = false; return; }
   const prayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
   const isLiked   = btn.classList.contains('liked');
   if (!isLiked) {
-    const displayName = await promptLikerName();
-    if (displayName === null) return;
-    btn.dataset.myLikerName = displayName;
     btn.classList.add('liked');
     const cur = parseInt(btn.querySelector('span').textContent) || 0;
     btn.innerHTML = `❤️ <span>${cur + 1}</span>`;
-    await updateDoc(prayerRef, { likes: increment(1), liked: true, likers: arrayUnion(displayName) });
+    await updateDoc(prayerRef, { likes: increment(1), liked: true });
   } else {
-    const myName = btn.dataset.myLikerName || null;
     btn.classList.remove('liked');
     const cur = parseInt(btn.querySelector('span').textContent) || 0;
     btn.innerHTML = `🤍 <span>${Math.max(0, cur - 1)}</span>`;
-    const updateData = { likes: increment(-1), liked: false };
-    if (myName) updateData.likers = arrayRemove(myName);
-    await updateDoc(prayerRef, updateData);
-    delete btn.dataset.myLikerName;
+    await updateDoc(prayerRef, { likes: increment(-1), liked: false });
   }
 };
 
-window.startLikersHold = (e, personId, prayerId) => {
-  const btn = e.currentTarget;
-  btn._holdFired = false;
-  likersPopupTimer = setTimeout(async () => {
-    btn._holdFired = true;
-    const snap   = await getDoc(doc(db, 'persons', personId, 'prayers', prayerId));
-    const likers = snap.data()?.likers || [];
-    showLikersPopup(btn, likers);
-  }, 600);
-};
-window.cancelLikersHold = () => { if (likersPopupTimer) { clearTimeout(likersPopupTimer); likersPopupTimer = null; } };
-
-function showLikersPopup(anchorBtn, likers) {
-  if (likersPopupEl) likersPopupEl.remove();
-  const popup = document.createElement('div');
-  popup.className = 'likers-popup';
-  popup.innerHTML = likers.length === 0
-    ? `<div class="likers-popup-title">❤️ 하트 누른 사람</div><div class="likers-empty">아직 없어요</div>`
-    : `<div class="likers-popup-title">❤️ 하트 누른 사람 (${likers.length}명)</div>`
-      + likers.map(n => `<div class="liker-item">❤️ ${escHtml(n)}</div>`).join('');
-  document.body.appendChild(popup);
-  likersPopupEl = popup;
-
-  const rect = anchorBtn.getBoundingClientRect();
-  popup.style.left = rect.left + 'px';
-  popup.style.top  = (rect.top - popup.offsetHeight - 8) + 'px';
-  const popRect = popup.getBoundingClientRect();
-  if (popRect.top < 8) popup.style.top = (rect.bottom + 8) + 'px';
-  if (popRect.right > window.innerWidth - 8) popup.style.left = (window.innerWidth - popRect.width - 8) + 'px';
-
-  setTimeout(() => {
-    const close = ev => {
-      if (!popup.contains(ev.target)) {
-        popup.remove(); likersPopupEl = null;
-        document.removeEventListener('mousedown', close);
-        document.removeEventListener('touchstart', close);
-      }
-    };
-    document.addEventListener('mousedown', close);
-    document.addEventListener('touchstart', close);
-  }, 100);
-}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  기도문 작성 / 수정 / 삭제
