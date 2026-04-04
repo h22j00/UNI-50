@@ -107,7 +107,7 @@
     <h2 id="modal-title">✦ 새 기도문 작성</h2>
     <div class="form-group">
       <label>기도문</label>
-      <textarea id="prayer-text" placeholder="50일 <UNI+부흥> 기도회를 위한 기도문을 작성해 주세요!"></textarea>
+      <textarea id="prayer-text" placeholder="이 분을 위한 기도문을 작성해 주세요..."></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeWriteModal()">취소</button>
@@ -120,6 +120,10 @@
 <div class="modal-overlay" id="edit-comment-modal">
   <div class="modal">
     <h2>✏️ 댓글 수정</h2>
+    <div class="form-group">
+      <label>이름</label>
+      <input type="text" id="edit-comment-author" placeholder="이름 (빈칸이면 익명)" maxlength="20">
+    </div>
     <div class="form-group">
       <label>댓글</label>
       <textarea id="edit-comment-text" placeholder="수정할 댓글 내용..." style="min-height:100px;"></textarea>
