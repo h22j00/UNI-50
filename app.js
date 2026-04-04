@@ -21,7 +21,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
 const EMOJIS = [
-  '🙏','✝️','⛪','💒','📖','🕯️','🕊️','⭐',
+  '😊', '😎', '🙏','✝️','⛪','💒','📖','🕯️','🕊️','⭐',
   '🌿','🌸','🌻','🌺','🍀','🌱','🌾','🍃',
   '❤️','🧡','💛','💚','💙','💜','🤍','🩵','🩷',
   '🐑','🦌','🐶','🐱','🦊','🐰','🐵','🦁','🐯','🐴','🐷','🐮',
@@ -45,6 +45,7 @@ let commentSheetPrayerId = null;
 let commentSheetUnsub    = null;
 let commentHoldTimer     = null;
 let editingCommentRef    = null;
+const sheetCommentCache  = {}; // prayerId → comments[]
 
 // ── 로딩 ────────────────────────────────────────
 function hideLoading() {
@@ -356,6 +357,7 @@ function openCommentSheet(personId, prayerId) {
   const commentsCol = collection(doc(db, 'persons', personId, 'prayers', prayerId), 'comments');
   commentSheetUnsub = onSnapshot(commentsCol, snap => {
     const comments = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+    sheetCommentCache[prayerId] = comments;
     renderSheetComments(comments, personId, prayerId);
   });
 
@@ -425,22 +427,23 @@ window.deleteSheetComment = async (personId, prayerId, commentId) => {
 };
 
 // 댓글 수정
-window.openEditSheetComment = async (personId, prayerId, commentId) => {
+window.openEditSheetComment = (personId, prayerId, commentId) => {
   editingCommentRef = doc(db, 'persons', personId, 'prayers', prayerId, 'comments', commentId);
-  const snap = await getDoc(editingCommentRef);
-  const currentText = snap.data()?.text || '';
-  document.getElementById('edit-comment-text').value = currentText;
+  const cached = (sheetCommentCache[prayerId] || []).find(c => c._docId === commentId);
+  document.getElementById('edit-comment-author').value = cached?.author || '';
+  document.getElementById('edit-comment-text').value   = cached?.text   || '';
   document.getElementById('edit-comment-modal').classList.add('open');
-  setTimeout(() => document.getElementById('edit-comment-text').focus(), 200);
+  setTimeout(() => document.getElementById('edit-comment-author').focus(), 200);
 };
 window.closeEditCommentModal = () => {
   document.getElementById('edit-comment-modal').classList.remove('open');
   editingCommentRef = null;
 };
 window.saveEditComment = async () => {
-  const text = document.getElementById('edit-comment-text').value.trim();
+  const text   = document.getElementById('edit-comment-text').value.trim();
+  const author = document.getElementById('edit-comment-author').value.trim() || '익명';
   if (!text || !editingCommentRef) return;
-  await updateDoc(editingCommentRef, { text });
+  await updateDoc(editingCommentRef, { text, author });
   closeEditCommentModal();
 };
 
