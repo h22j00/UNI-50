@@ -384,7 +384,7 @@ function renderSheetComments(comments, personId, prayerId) {
           <span class="sheet-comment-author">${escHtml(c.author || '익명')}</span>
           <span class="sheet-comment-time">${timeStr}</span>
           <span style="flex:1"></span>
-          <button class="comment-action-btn" onclick="openEditSheetComment('${personId}','${prayerId}','${c._docId}','${escAttr(c.text)}')" title="수정">✏️</button>
+          <button class="comment-action-btn" onclick="openEditSheetComment('${personId}','${prayerId}','${c._docId}')" title="수정">✏️</button>
           <button class="comment-action-btn danger" onclick="deleteSheetComment('${personId}','${prayerId}','${c._docId}')" title="삭제">🗑️</button>
         </div>
         <div class="sheet-comment-text">${escHtml(c.text)}</div>
@@ -425,8 +425,10 @@ window.deleteSheetComment = async (personId, prayerId, commentId) => {
 };
 
 // 댓글 수정
-window.openEditSheetComment = (personId, prayerId, commentId, currentText) => {
+window.openEditSheetComment = async (personId, prayerId, commentId) => {
   editingCommentRef = doc(db, 'persons', personId, 'prayers', prayerId, 'comments', commentId);
+  const snap = await getDoc(editingCommentRef);
+  const currentText = snap.data()?.text || '';
   document.getElementById('edit-comment-text').value = currentText;
   document.getElementById('edit-comment-modal').classList.add('open');
   setTimeout(() => document.getElementById('edit-comment-text').focus(), 200);
