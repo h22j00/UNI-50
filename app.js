@@ -21,7 +21,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
 const EMOJIS = [
-  '😊', '😎', '🙏','✝️','⛪','💒','📖','🕯️','🕊️','⭐',
+  '🙏','✝️','⛪','💒','📖','🕯️','🕊️','⭐',
   '🌿','🌸','🌻','🌺','🍀','🌱','🌾','🍃',
   '❤️','🧡','💛','💚','💙','💜','🤍','🩵','🩷',
   '🐑','🦌','🐶','🐱','🦊','🐰','🐵','🦁','🐯','🐴','🐷','🐮',
@@ -67,6 +67,7 @@ onSnapshot(personsCol, snapshot => {
     if (p) updatePanelHeader(p);
   }
   syncAllGlow();
+  checkSundayReset().catch(console.error);
 });
 
 function syncAllGlow() {
@@ -571,5 +572,3 @@ document.addEventListener('keydown', e => {
     closeCommentSheet();
   }
 });
-
-checkSundayReset().catch(console.error);
