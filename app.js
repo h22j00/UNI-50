@@ -20,6 +20,17 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
+// ── 내 하트 상태 (localStorage 기반) ────────────────
+function getMyLiked(personId, prayerId) {
+  const key = `liked_${personId}_${prayerId}`;
+  return localStorage.getItem(key) === 'true';
+}
+function setMyLiked(personId, prayerId, val) {
+  const key = `liked_${personId}_${prayerId}`;
+  if (val) localStorage.setItem(key, 'true');
+  else localStorage.removeItem(key);
+}
+
 const EMOJIS = [
   '🙏','✝️','⛪','💒','📖','🕯️','🕊️','⭐',
   '🌿','🌸','🌻','🌺','🍀','🌱','🌾','🍃',
@@ -216,6 +227,7 @@ function buildCardHtml(pr, dotsHtml, showPersonInfo) {
 
   const pid = pr.personId || '';
 
+  const myLiked = getMyLiked(pid, pr.id);
   return `
     <div class="prayer-card">
       ${personInfo}
@@ -223,10 +235,10 @@ function buildCardHtml(pr, dotsHtml, showPersonInfo) {
       <div class="card-footer">
         <div class="slider-dots">${dotsHtml}</div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <button class="heart-btn ${pr.liked ? 'liked' : ''}"
+          <button class="heart-btn ${myLiked ? 'liked' : ''}"
             onclick="toggleLike('${pid}','${pr.id}',this)"
             >
-            ${pr.liked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
+            ${myLiked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
           </button>
           <button class="comment-bubble-btn"
             id="comment-btn-${pr.id}"
@@ -453,17 +465,19 @@ window.saveEditComment = async () => {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 window.toggleLike = async (personId, prayerId, btn) => {
   const prayerRef = doc(db, 'persons', personId, 'prayers', prayerId);
-  const isLiked   = btn.classList.contains('liked');
+  const isLiked   = getMyLiked(personId, prayerId);
   if (!isLiked) {
+    setMyLiked(personId, prayerId, true);
     btn.classList.add('liked');
     const cur = parseInt(btn.querySelector('span').textContent) || 0;
     btn.innerHTML = `❤️ <span>${cur + 1}</span>`;
-    await updateDoc(prayerRef, { likes: increment(1), liked: true });
+    await updateDoc(prayerRef, { likes: increment(1) });
   } else {
+    setMyLiked(personId, prayerId, false);
     btn.classList.remove('liked');
     const cur = parseInt(btn.querySelector('span').textContent) || 0;
     btn.innerHTML = `🤍 <span>${Math.max(0, cur - 1)}</span>`;
-    await updateDoc(prayerRef, { likes: increment(-1), liked: false });
+    await updateDoc(prayerRef, { likes: increment(-1) });
   }
 };
 
