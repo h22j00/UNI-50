@@ -389,7 +389,7 @@ function renderAllCards(prayers) {
 function renderCards(prayers, personId) {
   const container = document.getElementById('cards-container');
   if (!prayers || prayers.length === 0) {
-    container.innerHTML = `<div class="no-cards"><p>아직 작성된 기도 카드가 없습니다.<br>아래 버튼으로 첫 기도문을 작성해 보세요 🙏</p></div>`;
+    container.innerHTML = `<div class="no-cards"><p>아직 작성된 기도문이 없습니다.<br>아래 버튼으로 첫 기도문을 작성해 보세요 🙏</p></div>`;
     return;
   }
 
