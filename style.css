@@ -148,10 +148,14 @@ body {
 #main {
   flex: 1; position: relative; z-index: 5;
   display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 40px 32px; overflow-y: auto;
+  align-items: center; justify-content: flex-start;
+  padding: 32px 20px 40px; overflow-y: auto;
+  min-height: 0;
 }
-.empty-state { text-align: center; animation: fadeIn .5s ease; padding: 20px; }
+.empty-state {
+  text-align: center; animation: fadeIn .5s ease; padding: 20px;
+  margin: auto; /* 가운데 정렬 유지 */
+}
 .uni-logo { width: min(280px, 65vw); margin: 0 auto 28px; opacity: 0.9; filter: drop-shadow(0 0 16px rgba(255,255,255,0.15)); }
 .uni-logo svg { width: 100%; height: auto; }
 .empty-state h2 { font-family: 'Noto Serif KR', serif; font-size: clamp(14px, 4vw, 20px); font-weight: 300; color: var(--text-muted); }
