@@ -590,7 +590,7 @@ body {
   font-size: 20px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: all .2s;
 }
-.emoji-btn:hover, .emoji-btn.selected { border-color: var(--accent); background: rgba(138,159,212,.15); }
+.emoji-btn:hover, .emoji-btn.selected { border-color: var(--accent); background: rgba(199, 211, 240,.15); }
 
 /* ── 빈 카드 ── */
 .no-cards { text-align: center; padding: 40px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
