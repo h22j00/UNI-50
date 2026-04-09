@@ -63,6 +63,7 @@ function hideLoading() {
   document.getElementById('loading-screen').style.display = 'none';
   document.getElementById('sidebar').style.display        = 'flex';
   document.getElementById('main').style.display           = 'flex';
+  document.getElementById('main').classList.add('empty');
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -136,6 +137,7 @@ function selectPerson(id) {
   document.getElementById('all-panel').style.display   = 'none';
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('all-view-btn').classList.remove('active');
+  document.getElementById('main').classList.remove('empty');
 
   const panel = document.getElementById('person-panel');
   panel.style.display = 'flex';
@@ -175,6 +177,7 @@ window.openAllView = async () => {
   document.getElementById('empty-state').style.display  = 'none';
   document.getElementById('person-panel').style.display = 'none';
   document.getElementById('all-view-btn').classList.add('active');
+  document.getElementById('main').classList.remove('empty');
   renderSidebar();
 
   const allPanel = document.getElementById('all-panel');
@@ -210,6 +213,27 @@ window.openAllView = async () => {
 let allCurrentSlide = 0;
 let allPrayersCache = [];
 
+// ── 블로그형 기도문 목록 아이템 ─────────────────────
+function buildPrayerListItem(pr) {
+  const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
+  const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const pid   = pr.personId || '';
+  const title = pr.title || '기도문';
+  const myLiked = getMyLiked(pid, pr.id);
+  return `
+    <div class="prayer-list-item" onclick="openPrayerDetail('${pid}','${pr.id}','false')">
+      <div class="prayer-list-item-left">
+        <div class="prayer-list-title">${escHtml(title)}</div>
+        <div class="prayer-list-meta">
+          <span>${dateStr}</span>
+          <span>${myLiked ? '❤️' : '🤍'} ${pr.likes || 0}</span>
+          <span>💬 <span class="comment-count-list-${pr.id}">${pr.commentCount || 0}</span></span>
+        </div>
+      </div>
+      <span class="prayer-list-arrow">›</span>
+    </div>`;
+}
+
 // ── 최신 기도문 카드 (크게 보여주기) ────────────────
 function buildLatestCardHtml(pr) {
   const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
@@ -221,6 +245,7 @@ function buildLatestCardHtml(pr) {
   return `
     <div class="latest-card">
       <div class="latest-card-label">✦ 최신 기도문</div>
+      <div style="font-family:'Noto Serif KR',serif;font-size:16px;font-weight:600;color:var(--text);margin-bottom:2px;">${escHtml(pr.title || '기도문')}</div>
       <div class="latest-card-date">${dateStr}</div>
       <div class="latest-card-text">${escHtml(pr.text)}</div>
       <div class="latest-card-footer">
@@ -261,6 +286,7 @@ function buildCardHtml(pr, showPersonInfo) {
     <div class="mini-card" onclick="openPrayerDetail('${pid}','${pr.id}','${showPersonInfo}')">
       ${topRow}
       <div class="mini-card-date">${dateStr}</div>
+      ${pr.title ? `<div style="font-family:'Noto Serif KR',serif;font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;">${escHtml(pr.title)}</div>` : ''}
       <div class="mini-card-text">${escHtml(preview)}</div>
       <div class="mini-card-footer">
         <span class="mini-stat">${myLiked ? '❤️' : '🤍'} ${pr.likes || 0}</span>
@@ -379,12 +405,13 @@ function renderCards(prayers, personId) {
   const rest   = withPid.slice(1);
 
   const latestHtml = buildLatestCardHtml(latest);
-  const gridHtml   = rest.length > 0
-    ? `<div class="grid-section-title">📜 이전 기도문</div><div class="cards-grid">${rest.map(pr => buildCardHtml(pr, false)).join('')}</div>`
+  const listHtml = rest.length > 0
+    ? `<div class="prayer-list-section-title">📜 이전 기도문</div>
+       <div class="prayer-list-wrap">${rest.map(pr => buildPrayerListItem(pr)).join('')}</div>`
     : '';
 
   personalPrayersCache = withPid;
-  container.innerHTML = latestHtml + gridHtml;
+  container.innerHTML = latestHtml + listHtml;
 
   // 댓글 수 실시간 반영 (최신카드 + 미니카드 + 상세모달)
   withPid.forEach(pr => {
@@ -573,6 +600,7 @@ window.toggleLike = async (personId, prayerId, btn) => {
 window.openWriteModal = () => {
   editingPrayerId = null;
   document.getElementById('modal-title').textContent = '✦ 새 기도문 작성';
+  document.getElementById('prayer-title').value = '';
   document.getElementById('prayer-text').value = '';
   document.getElementById('write-modal').classList.add('open');
   setTimeout(() => document.getElementById('prayer-text').focus(), 200);
@@ -583,19 +611,21 @@ window.openEditModal = prayerId => {
   if (!prayer) return;
   editingPrayerId = prayerId;
   document.getElementById('modal-title').textContent = '✏️ 기도문 수정';
+  document.getElementById('prayer-title').value = prayer.title || '';
   document.getElementById('prayer-text').value = prayer.text;
   document.getElementById('write-modal').classList.add('open');
   setTimeout(() => document.getElementById('prayer-text').focus(), 200);
 };
 window.closeWriteModal = () => document.getElementById('write-modal').classList.remove('open');
 window.savePrayer = async () => {
-  const text = document.getElementById('prayer-text').value.trim();
+  const text  = document.getElementById('prayer-text').value.trim();
+  const title = document.getElementById('prayer-title').value.trim() || '기도문';
   if (!text) { alert('기도문을 입력해 주세요.'); return; }
   const pCol = collection(db, 'persons', selectedPersonId, 'prayers');
   if (editingPrayerId) {
-    await updateDoc(doc(pCol, editingPrayerId), { text });
+    await updateDoc(doc(pCol, editingPrayerId), { text, title });
   } else {
-    await addDoc(pCol, { text, glow: true, likes: 0, liked: false, likers: [], createdAt: serverTimestamp() });
+    await addDoc(pCol, { text, title, glow: true, likes: 0, liked: false, likers: [], createdAt: serverTimestamp() });
   }
   closeWriteModal();
 };
