@@ -290,12 +290,12 @@ window.openPrayerDetail = (personId, prayerId, isAllView) => {
   const myLiked = getMyLiked(personId, prayerId);
   const commentCount = pr.commentCount || 0;
 
-  const personHeader = detailIsAllView ? `
+  const personHeader = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-      <span style="font-size:24px;">${pr.personIcon}</span>
-      <span style="font-size:15px;font-weight:600;">${pr.personName}</span>
+      <span style="font-size:22px;">${pr.personIcon || ''}</span>
+      <span style="font-size:14px;font-weight:600;">${pr.personName || ''}</span>
       <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${dateStr}</span>
-    </div>` : `<div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:16px;">${dateStr}</div>`;
+    </div>`;
 
   const editBtns = !detailIsAllView ? `
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
@@ -346,7 +346,8 @@ function renderCards(prayers, personId) {
   const sorted = [...prayers].reverse();
 
   // personId를 pr에 주입
-  const withPid = sorted.map(pr => ({ ...pr, personId }));
+  const person2 = persons.find(p => p.id === personId);
+  const withPid = sorted.map(pr => ({ ...pr, personId, personName: person2?.name || '', personIcon: person2?.icon || '' }));
 
   // 최신 1개는 크게, 나머지는 격자
   const latest = withPid[0];
