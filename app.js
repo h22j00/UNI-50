@@ -273,6 +273,7 @@ function buildCardHtml(pr, showPersonInfo) {
 let detailPrayerPersonId = null;
 let detailPrayerId       = null;
 let detailIsAllView      = false;
+let personalPrayersCache = []; // withPid 캐시
 
 window.openPrayerDetail = (personId, prayerId, isAllView) => {
   detailPrayerPersonId = personId;
@@ -281,9 +282,13 @@ window.openPrayerDetail = (personId, prayerId, isAllView) => {
 
   // persons / prayers 에서 찾기
   const person = persons.find(p => p.id === personId);
-  const pr     = person?.prayers.find(pr => pr.id === prayerId)
-              || allPrayersCache.find(pr => pr.id === prayerId && pr.personId === personId);
+  const pr     = personalPrayersCache.find(pr => pr.id === prayerId && pr.personId === personId)
+              || allPrayersCache.find(pr => pr.id === prayerId && pr.personId === personId)
+              || person?.prayers.find(pr => pr.id === prayerId);
   if (!pr) return;
+  // personName/Icon 보정 (person.prayers에는 없을 수 있음)
+  if (!pr.personName && person) pr.personName = person.name;
+  if (!pr.personIcon && person) pr.personIcon = person.icon;
 
   const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
   const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
@@ -378,6 +383,7 @@ function renderCards(prayers, personId) {
     ? `<div class="grid-section-title">📜 이전 기도문</div><div class="cards-grid">${rest.map(pr => buildCardHtml(pr, false)).join('')}</div>`
     : '';
 
+  personalPrayersCache = withPid;
   container.innerHTML = latestHtml + gridHtml;
 
   // 댓글 수 실시간 반영 (최신카드 + 미니카드 + 상세모달)
