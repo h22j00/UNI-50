@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500&display=swap');
 
 :root {
-  --bg: #0d0f14;
-  --surface: #161922;
-  --surface2: #1e2230;
-  --border: #2a3050;
+  --bg: #99C3E4;
+  --surface: #7aafe0;
+  --surface2: #6aa0d4;
+  --border: #5590c8;
   --text: #FFF9E6;
-  --text-muted: #7a8099;
+  --text-muted: #3a6090;
   --gold: #f5c842;
   --gold-glow: rgba(245, 200, 66, 0.35);
-  --accent: #99C3E4;
+  --accent: #8a9fd4;
   --red: #e06b6b;
   --radius: 16px;
 }
@@ -28,9 +28,7 @@ body {
 /* ── 별 배경 ── */
 #stars {
   position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background: radial-gradient(ellipse at 20% 50%, #0d1633 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 20%, #130d1a 0%, transparent 50%),
-              var(--bg);
+  background: var(--bg);
 }
 #stars::before {
   content: ''; position: absolute; inset: 0;
@@ -52,7 +50,7 @@ body {
 /* ── 로딩 ── */
 #loading-screen {
   position: fixed; inset: 0; z-index: 999;
-  background: var(--bg);
+  background: #99C3E4;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 16px;
 }
@@ -63,7 +61,7 @@ body {
 #sidebar {
   position: relative; z-index: 10;
   width: 110px; height: 100vh;
-  background: rgba(14,16,22,.85);
+  background: rgba(100,160,210,.92);
   backdrop-filter: blur(12px);
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
