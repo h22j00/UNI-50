@@ -210,74 +210,128 @@ window.openAllView = async () => {
 let allCurrentSlide = 0;
 let allPrayersCache = [];
 
-function buildCardHtml(pr, dotsHtml, showPersonInfo) {
+// ── 최신 기도문 카드 (크게 보여주기) ────────────────
+function buildLatestCardHtml(pr) {
   const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
   const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-  const commentCount = pr.commentCount || 0;
-  const personInfo = showPersonInfo ? `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <span style="font-size:22px;">${pr.personIcon}</span>
-      <span style="font-size:13px;font-weight:500;">${pr.personName}</span>
-      <span class="card-date" style="margin:0;margin-left:auto;">${dateStr}</span>
-    </div>` : `<div class="card-date">${dateStr}</div>`;
-
-  const editDeleteBtns = !showPersonInfo ? `
-    <button class="btn btn-edit" onclick="openEditModal('${pr.id}')">✏️</button>
-    <button class="btn btn-danger" onclick="deletePrayer('${pr.id}')">🗑️</button>` : '';
-
-  const pid = pr.personId || '';
-
+  const pid     = pr.personId || '';
   const myLiked = getMyLiked(pid, pr.id);
+  const commentCount = pr.commentCount || 0;
+
   return `
-    <div class="prayer-card">
-      ${personInfo}
-      <div class="card-content">${escHtml(pr.text)}</div>
-      <div class="card-footer">
-        <div class="slider-dots">${dotsHtml}</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <button class="heart-btn ${myLiked ? 'liked' : ''}"
-            onclick="toggleLike('${pid}','${pr.id}',this)"
-            >
-            ${myLiked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
-          </button>
-          <button class="comment-bubble-btn"
-            id="comment-btn-${pr.id}"
-            onmousedown="startCommentHold(event,'${pid}','${pr.id}')"
-            onmouseup="cancelCommentHold()" onmouseleave="cancelCommentHold()"
-            ontouchstart="startCommentHold(event,'${pid}','${pr.id}')"
-            ontouchend="cancelCommentHold()">
-            💬 <span class="comment-count">${commentCount}</span>
-          </button>
-          ${editDeleteBtns}
-        </div>
+    <div class="latest-card">
+      <div class="latest-card-label">✦ 최신 기도문</div>
+      <div class="latest-card-date">${dateStr}</div>
+      <div class="latest-card-text">${escHtml(pr.text)}</div>
+      <div class="latest-card-footer">
+        <button class="heart-btn ${myLiked ? 'liked' : ''}"
+          onclick="toggleLike('${pid}','${pr.id}',this)">
+          ${myLiked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>
+        </button>
+        <button class="comment-bubble-btn"
+          id="comment-btn-${pr.id}"
+          onmousedown="startCommentHold(event,'${pid}','${pr.id}')"
+          onmouseup="cancelCommentHold()" onmouseleave="cancelCommentHold()"
+          ontouchstart="startCommentHold(event,'${pid}','${pr.id}')"
+          ontouchend="cancelCommentHold()">
+          💬 <span class="comment-count">${commentCount}</span>
+        </button>
+        <button class="btn btn-edit" onclick="openEditModal('${pr.id}')">✏️</button>
+        <button class="btn btn-danger" onclick="deletePrayer('${pr.id}')">🗑️</button>
       </div>
     </div>`;
 }
 
-function renderAllCards(prayers) {
-  allPrayersCache = prayers;
-  const container = document.getElementById('all-cards-container');
-  if (allCurrentSlide >= prayers.length) allCurrentSlide = prayers.length - 1;
+// ── 미리보기 카드 (격자용) ──────────────────────────
+function buildCardHtml(pr, showPersonInfo) {
+  const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
+  const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const commentCount = pr.commentCount || 0;
+  const pid = pr.personId || '';
+  const myLiked = getMyLiked(pid, pr.id);
+  const preview = pr.text.length > 60 ? pr.text.slice(0, 60) + '…' : pr.text;
 
-  const dotsHtml = prayers.map((_, i) =>
-    `<span class="dot ${i === allCurrentSlide ? 'active' : ''}" onclick="goAllSlide(${i})"></span>`
-  ).join('');
+  const topRow = showPersonInfo ? `
+    <div class="mini-card-person">
+      <span>${pr.personIcon}</span>
+      <span class="mini-card-name">${pr.personName}</span>
+    </div>` : '';
 
-  const cardsHtml = prayers.map(pr => buildCardHtml(pr, dotsHtml, true)).join('');
-
-  container.innerHTML = `
-    <div class="slider-wrap">
-      <div class="cards-track" style="transform:translateX(-${allCurrentSlide * 100}%)">${cardsHtml}</div>
-    </div>
-    <div class="slider-nav" style="justify-content:center;margin-top:12px;">
-      <button class="nav-btn" onclick="prevAllSlide()" ${allCurrentSlide===0?'disabled':''}>‹</button>
-      <button class="nav-btn" onclick="nextAllSlide()" ${allCurrentSlide===prayers.length-1?'disabled':''}>›</button>
+  return `
+    <div class="mini-card" onclick="openPrayerDetail('${pid}','${pr.id}','${showPersonInfo}')">
+      ${topRow}
+      <div class="mini-card-date">${dateStr}</div>
+      <div class="mini-card-text">${escHtml(preview)}</div>
+      <div class="mini-card-footer">
+        <span class="mini-stat">${myLiked ? '❤️' : '🤍'} ${pr.likes || 0}</span>
+        <span class="mini-stat">💬 ${commentCount}</span>
+      </div>
     </div>`;
 }
 
-window.goAllSlide   = i => { allCurrentSlide = i; renderAllCards(allPrayersCache); };
-window.prevAllSlide = () => { if (allCurrentSlide > 0) { allCurrentSlide--; renderAllCards(allPrayersCache); } };
-window.nextAllSlide = () => { if (allCurrentSlide < allPrayersCache.length - 1) { allCurrentSlide++; renderAllCards(allPrayersCache); } };
+// ── 상세 모달 열기 ────────────────────────────────
+let detailPrayerPersonId = null;
+let detailPrayerId       = null;
+let detailIsAllView      = false;
+
+window.openPrayerDetail = (personId, prayerId, isAllView) => {
+  detailPrayerPersonId = personId;
+  detailPrayerId       = prayerId;
+  detailIsAllView      = isAllView === 'true';
+
+  // persons / prayers 에서 찾기
+  const person = persons.find(p => p.id === personId);
+  const pr     = person?.prayers.find(pr => pr.id === prayerId)
+              || allPrayersCache.find(pr => pr.id === prayerId && pr.personId === personId);
+  if (!pr) return;
+
+  const d = pr.createdAt?.toDate ? pr.createdAt.toDate() : new Date();
+  const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const myLiked = getMyLiked(personId, prayerId);
+  const commentCount = pr.commentCount || 0;
+
+  const personHeader = detailIsAllView ? `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <span style="font-size:24px;">${pr.personIcon}</span>
+      <span style="font-size:15px;font-weight:600;">${pr.personName}</span>
+      <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${dateStr}</span>
+    </div>` : `<div style="font-size:11px;color:var(--text-muted);letter-spacing:1.5px;margin-bottom:16px;">${dateStr}</div>`;
+
+  const editBtns = !detailIsAllView ? `
+    <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
+      <button class="btn btn-edit" onclick="closeDetailModal();openEditModal('${prayerId}')">✏️ 수정</button>
+      <button class="btn btn-danger" onclick="closeDetailModal();deletePrayer('${prayerId}')">🗑️ 삭제</button>
+    </div>` : '';
+
+  document.getElementById('detail-person-header').innerHTML = personHeader;
+  document.getElementById('detail-text').textContent        = pr.text;
+  document.getElementById('detail-heart-btn').className     = `heart-btn ${myLiked ? 'liked' : ''}`;
+  document.getElementById('detail-heart-btn').innerHTML     = `${myLiked ? '❤️' : '🤍'} <span>${pr.likes || 0}</span>`;
+  document.getElementById('detail-comment-btn').querySelector('.comment-count').textContent = commentCount;
+  document.getElementById('detail-edit-btns').innerHTML     = editBtns;
+
+  document.getElementById('detail-modal').classList.add('open');
+};
+
+window.closeDetailModal = () => {
+  document.getElementById('detail-modal').classList.remove('open');
+};
+
+window.detailToggleLike = () => {
+  const btn = document.getElementById('detail-heart-btn');
+  toggleLike(detailPrayerPersonId, detailPrayerId, btn);
+};
+
+window.detailOpenComment = () => {
+  openCommentSheet(detailPrayerPersonId, detailPrayerId);
+};
+
+function renderAllCards(prayers) {
+  allPrayersCache = prayers;
+  const container = document.getElementById('all-cards-container');
+  const cardsHtml = prayers.map(pr => buildCardHtml(pr, true)).join('');
+  container.innerHTML = `<div class="cards-grid">${cardsHtml}</div>`;
+}
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  개인 카드 렌더
@@ -290,34 +344,30 @@ function renderCards(prayers, personId) {
   }
 
   const sorted = [...prayers].reverse();
-  if (currentSlide >= sorted.length) currentSlide = sorted.length - 1;
-
-  const dotsHtml = sorted.map((_, i) =>
-    `<span class="dot ${i === currentSlide ? 'active' : ''}" onclick="goSlide(${i})"></span>`
-  ).join('');
 
   // personId를 pr에 주입
   const withPid = sorted.map(pr => ({ ...pr, personId }));
-  const cardsHtml = withPid.map(pr => buildCardHtml(pr, dotsHtml, false)).join('');
 
-  container.innerHTML = `
-    <div class="slider-wrap">
-      <div class="cards-track" id="cards-track" style="transform:translateX(-${currentSlide * 100}%)">${cardsHtml}</div>
-    </div>
-    <div class="slider-nav" style="justify-content:center;margin-top:12px;">
-      <button class="nav-btn" onclick="prevSlide()" ${currentSlide===0?'disabled':''}>‹</button>
-      <button class="nav-btn" onclick="nextSlide()" ${currentSlide===sorted.length-1?'disabled':''}>›</button>
-    </div>`;
+  // 최신 1개는 크게, 나머지는 격자
+  const latest = withPid[0];
+  const rest   = withPid.slice(1);
+
+  const latestHtml = buildLatestCardHtml(latest);
+  const gridHtml   = rest.length > 0
+    ? `<div class="grid-section-title">📜 이전 기도문</div><div class="cards-grid">${rest.map(pr => buildCardHtml(pr, false)).join('')}</div>`
+    : '';
+
+  container.innerHTML = latestHtml + gridHtml;
 
   // 댓글 수 실시간 반영
   withPid.forEach(pr => {
     const commentsCol = collection(doc(db, 'persons', personId, 'prayers', pr.id), 'comments');
     onSnapshot(commentsCol, snap => {
-      const btn = document.getElementById(`comment-btn-${pr.id}`);
-      if (!btn) return;
-      const cnt = snap.size;
-      const countEl = btn.querySelector('.comment-count');
-      if (countEl) countEl.textContent = cnt;
+      // 미리보기 카드의 댓글 수는 재렌더링으로 반영되므로 상세 모달만 업데이트
+      if (detailPrayerId === pr.id) {
+        const countEl = document.querySelector('#detail-comment-btn .comment-count');
+        if (countEl) countEl.textContent = snap.size;
+      }
     });
   });
 }
@@ -325,12 +375,7 @@ function renderCards(prayers, personId) {
 function escHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(str) { return String(str).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-window.goSlide   = i => { currentSlide = i; const p = persons.find(p => p.id === selectedPersonId); if (p) renderCards(p.prayers, p.id); };
-window.prevSlide = () => { if (currentSlide > 0) { currentSlide--; const p = persons.find(p => p.id === selectedPersonId); if (p) renderCards(p.prayers, p.id); } };
-window.nextSlide = () => {
-  const person = persons.find(p => p.id === selectedPersonId);
-  if (person && currentSlide < person.prayers.length - 1) { currentSlide++; renderCards(person.prayers, person.id); }
-};
+
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  💬 댓글 버튼 꾹 누르기 → 바텀시트
