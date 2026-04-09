@@ -192,7 +192,7 @@ body {
 }
 .panel-info { min-width: 0; flex: 1; }
 .panel-info h1 {
-  font-family: 'Noto Serif KR', serif; font-size: clamp(14px, 4vw, 22px); font-weight: 600;
+  font-family: 'Noto Serif KR', serif; font-size: clamp(14px, 4vw, 22px); font-weight: 800;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .panel-name-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
