@@ -149,8 +149,13 @@ function selectPerson(id) {
   renderSidebar();
 
   if (prayersUnsub) prayersUnsub();
-  prayersUnsub = onSnapshot(collection(db, 'persons', id, 'prayers'), snapshot => {
-    person.prayers = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  prayersUnsub = onSnapshot(collection(db, 'persons', id, 'prayers'), async snapshot => {
+    // commentCount 포함하여 prayers 로드
+    const prayerDocs = snapshot.docs;
+    person.prayers = await Promise.all(prayerDocs.map(async d => {
+      const commSnap = await getDocs(collection(db, 'persons', id, 'prayers', d.id, 'comments'));
+      return { id: d.id, commentCount: commSnap.size, ...d.data() };
+    }));
     person.hasGlow = person.prayers.some(pr => pr.glow);
     renderSidebar();
     updatePanelHeader(person);
@@ -322,11 +327,12 @@ window.openPrayerDetail = (personId, prayerId, isAllView) => {
   const commentCount = pr.commentCount || 0;
 
   const personHeader = `
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <span style="font-size:22px;">${pr.personIcon || ''}</span>
       <span style="font-size:14px;font-weight:600;">${pr.personName || ''}</span>
       <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${dateStr}</span>
-    </div>`;
+    </div>
+    ${pr.title ? `<div style="font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:14px;line-height:1.4;">${escHtml(pr.title)}</div>` : ''}`;
 
   const editBtns = !detailIsAllView ? `
     <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
