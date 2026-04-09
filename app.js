@@ -561,8 +561,7 @@ window.openEditPersonModal = () => {
 window.closeAddPersonModal = () => document.getElementById('add-person-modal').classList.remove('open');
 window.deletePerson = async () => {
   if (!editingPersonId) return;
-  if (!confirm('이 사람을 삭제할까요?
-기도문과 댓글도 모두 삭제됩니다.')) return;
+  if (!confirm('이 사람을 삭제할까요?\n기도문과 댓글도 모두 삭제됩니다.')) return;
   // 기도문 하위 댓글까지 삭제
   const prayersSnap = await getDocs(collection(db, 'persons', editingPersonId, 'prayers'));
   for (const pd of prayersSnap.docs) {
@@ -601,7 +600,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-    if (likersPopupEl) { likersPopupEl.remove(); likersPopupEl = null; }
     closeCommentSheet();
   }
 });
