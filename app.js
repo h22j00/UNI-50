@@ -149,13 +149,8 @@ function selectPerson(id) {
   renderSidebar();
 
   if (prayersUnsub) prayersUnsub();
-  prayersUnsub = onSnapshot(collection(db, 'persons', id, 'prayers'), async snapshot => {
-    // commentCount 포함하여 prayers 로드
-    const prayerDocs = snapshot.docs;
-    person.prayers = await Promise.all(prayerDocs.map(async d => {
-      const commSnap = await getDocs(collection(db, 'persons', id, 'prayers', d.id, 'comments'));
-      return { id: d.id, commentCount: commSnap.size, ...d.data() };
-    }));
+  prayersUnsub = onSnapshot(collection(db, 'persons', id, 'prayers'), snapshot => {
+    person.prayers = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     person.hasGlow = person.prayers.some(pr => pr.glow);
     renderSidebar();
     updatePanelHeader(person);
