@@ -44,7 +44,7 @@
   </div>
 
   <!-- 개인 패널 -->
-  <div id="person-panel" style="display:none; flex-direction:column; gap:24px; width:100%; max-width:600px;">
+  <div id="person-panel" style="display:none; flex-direction:column; gap:24px; width:100%; max-width:860px;">
     <div class="panel-header">
       <div class="panel-avatar-lg" id="panel-avatar"></div>
       <div class="panel-info">
@@ -66,7 +66,7 @@
   </div>
 
   <!-- 전체 보기 패널 -->
-  <div id="all-panel" style="display:none; flex-direction:column; gap:24px; width:100%; max-width:640px;">
+  <div id="all-panel" style="display:none; flex-direction:column; gap:24px; width:100%; max-width:860px;">
     <div class="panel-header">
       <div class="panel-info">
         <h1 style="font-family:'Noto Serif KR',serif;font-size:20px;">📋 전체 기도 보기</h1>
@@ -101,13 +101,33 @@
   </div>
 </div>
 
+<!-- 기도문 상세 모달 -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal detail-modal-inner">
+    <button class="detail-close-btn" onclick="closeDetailModal()">✕</button>
+    <div id="detail-person-header"></div>
+    <div id="detail-text" class="detail-text"></div>
+    <div class="detail-actions">
+      <button class="heart-btn" id="detail-heart-btn" onclick="detailToggleLike()">🤍 <span>0</span></button>
+      <button class="comment-bubble-btn" id="detail-comment-btn" onclick="detailOpenComment()"
+        onmousedown="startCommentHold(event,detailPrayerPersonId,detailPrayerId)"
+        onmouseup="cancelCommentHold()" onmouseleave="cancelCommentHold()"
+        ontouchstart="startCommentHold(event,detailPrayerPersonId,detailPrayerId)"
+        ontouchend="cancelCommentHold()">
+        💬 <span class="comment-count">0</span>
+      </button>
+    </div>
+    <div id="detail-edit-btns"></div>
+  </div>
+</div>
+
 <!-- 기도문 작성/수정 모달 -->
 <div class="modal-overlay" id="write-modal">
   <div class="modal">
     <h2 id="modal-title">✦ 새 기도문 작성</h2>
     <div class="form-group">
       <label>기도문</label>
-      <textarea id="prayer-text" placeholder="50일 <UNI+부흥> 기도회를 위한 기도문을 작성해주세요!"></textarea>
+      <textarea id="prayer-text" placeholder="50일 <UNI+ 부흥> 기도회를 위한 기도문을 작성해주세요!"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeWriteModal()">취소</button>
