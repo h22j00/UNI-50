@@ -19,7 +19,7 @@
 body {
   font-family: 'Noto Sans KR', sans-serif;
   background: var(--bg);
-  color: var(--text);
+  color: var(--accent);
   min-height: 100vh;
   display: flex;
   overflow: hidden;
@@ -479,7 +479,7 @@ body {
 }
 .sheet-comment-author {
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: 12px; font-weight: 500; color: var(--accent);
+  font-size: 12px; font-weight: 500; color: var(--text-muted);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;
 }
 .sheet-comment-time {
@@ -488,7 +488,7 @@ body {
 }
 .sheet-comment-text {
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: clamp(12px, 3.2vw, 14px); line-height: 1.65; color: var(--accent);
+  font-size: clamp(12px, 3.2vw, 14px); line-height: 1.65; color: var(--text-muted);
   white-space: pre-wrap;
 }
 .comment-action-btn {
@@ -547,7 +547,7 @@ body {
   padding: 10px 20px; border-radius: 10px; font-size: 13px;
   font-family: 'Noto Sans KR', sans-serif; cursor: pointer; transition: all .2s; border: none;
 }
-.btn-primary { background: var(--accent); color: #0d0f14; font-weight: 500; }
+.btn-primary { background: var(--accent); color: var(--bg); font-weight: 500; }
 .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 .btn-outline:hover { background: var(--surface2); }
