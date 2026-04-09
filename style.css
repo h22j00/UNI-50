@@ -5,7 +5,7 @@
   --surface: #A8D0EF;
   --surface2: #C1E4F3;
   --border: #4692f2;
-  --text: #020678;
+  --text: #fafbfc;
   --text-muted: #3a6090;
   --gold: #fcf223;
   --gold-glow: rgba(245, 200, 66, 0.35);
@@ -162,10 +162,9 @@ body {
 .empty-state {
   text-align: center; animation: fadeIn .5s ease; padding: 20px;
   width: 100%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1;
+  min-height: 60vh;
 }
 .uni-logo { width: min(280px, 65vw); margin: 0 auto 28px; opacity: 0.9; filter: drop-shadow(0 0 16px rgba(255,255,255,0.15)); }
 .uni-logo svg { width: 100%; height: auto; }
@@ -549,7 +548,7 @@ body {
   padding: 10px 20px; border-radius: 10px; font-size: 13px;
   font-family: 'Noto Sans KR', sans-serif; cursor: pointer; transition: all .2s; border: none;
 }
-.btn-primary { background: var(--accent); color: #0d0f14; font-weight: 500; }
+.btn-primary { background: var(--accent); color: var(--bg); font-weight: 500; }
 .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 .btn-outline:hover { background: var(--surface2); }
