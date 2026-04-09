@@ -5,7 +5,7 @@
   --surface: #A8D0EF;
   --surface2: #C1E4F3;
   --border: #4692f2;
-  --text: #fafbfc;
+  --text: #020678;
   --text-muted: #3a6090;
   --gold: #fcf223;
   --gold-glow: rgba(245, 200, 66, 0.35);
@@ -154,6 +154,8 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
+/* 패널이 없을 때 가운데 정렬용 */
+#main.empty { justify-content: center; }
 #main::-webkit-scrollbar { width: 4px; }
 #main::-webkit-scrollbar-track { background: transparent; }
 #main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -173,7 +175,7 @@ body {
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
 
 /* ── 패널 헤더 ── */
-.panel-header { display: flex; align-items: center; gap: 12px; margin-top: 28px; }
+.panel-header { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
 .panel-avatar-lg {
   width: 56px; height: 56px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -195,7 +197,7 @@ body {
 .glow-badge {
   display: inline-flex; align-items: center; gap: 5px;
   background: rgba(245,200,66,.12); border: 1px solid rgba(245,200,66,.35);
-  border-radius: 20px; padding: 2px 10px; font-size: 11px; color: #F5C842; margin-top: 5px;
+  border-radius: 20px; padding: 2px 10px; font-size: 11px; color: var(--gold); margin-top: 5px;
 }
 
 /* ── 카드 슬라이더 ── */
@@ -479,7 +481,7 @@ body {
 }
 .sheet-comment-author {
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: 12px; font-weight: 500; color: var(--text-muted);
+  font-size: 12px; font-weight: 500; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;
 }
 .sheet-comment-time {
@@ -488,7 +490,7 @@ body {
 }
 .sheet-comment-text {
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: clamp(12px, 3.2vw, 14px); line-height: 1.65; color: var(--text-muted);
+  font-size: clamp(12px, 3.2vw, 14px); line-height: 1.65; color: var(--text);
   white-space: pre-wrap;
 }
 .comment-action-btn {
@@ -547,7 +549,7 @@ body {
   padding: 10px 20px; border-radius: 10px; font-size: 13px;
   font-family: 'Noto Sans KR', sans-serif; cursor: pointer; transition: all .2s; border: none;
 }
-.btn-primary { background: var(--accent); color: var(--bg); font-weight: 500; }
+.btn-primary { background: var(--accent); color: #0d0f14; font-weight: 500; }
 .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
 .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
 .btn-outline:hover { background: var(--surface2); }
@@ -590,7 +592,7 @@ body {
   font-size: 20px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; transition: all .2s;
 }
-.emoji-btn:hover, .emoji-btn.selected { border-color: var(--accent); background: rgba(199, 211, 240,.15); }
+.emoji-btn:hover, .emoji-btn.selected { border-color: var(--accent); background: rgba(138,159,212,.15); }
 
 /* ── 빈 카드 ── */
 .no-cards { text-align: center; padding: 40px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
@@ -601,3 +603,42 @@ body {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── 기도문 제목/목록 (블로그형) ── */
+.prayer-list-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .2s;
+  gap: 12px;
+}
+.prayer-list-item:hover {
+  border-color: var(--accent);
+  transform: translateX(4px);
+  background: var(--surface2);
+}
+.prayer-list-item-left { flex: 1; min-width: 0; }
+.prayer-list-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 14px; font-weight: 600;
+  color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.prayer-list-meta {
+  font-size: 11px; color: var(--text-muted);
+  margin-top: 3px; display: flex; gap: 10px; align-items: center;
+}
+.prayer-list-arrow {
+  font-size: 16px; color: var(--text-muted); flex-shrink: 0;
+}
+.prayer-list-wrap {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.prayer-list-section-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 12px; color: var(--text-muted);
+  letter-spacing: 1.5px; margin-bottom: 4px;
+}
