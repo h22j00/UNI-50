@@ -541,6 +541,7 @@ window.openAddPersonModal = () => {
   document.getElementById('new-person-name').value           = '';
   document.getElementById('add-person-title').textContent    = '＋ 새 사람 추가';
   document.getElementById('add-person-save-btn').textContent = '추가';
+  document.getElementById('add-person-delete-btn').style.display = 'none';
   renderEmojiPicker(selectedEmoji);
   document.getElementById('add-person-modal').classList.add('open');
   setTimeout(() => document.getElementById('new-person-name').focus(), 200);
@@ -552,11 +553,29 @@ window.openEditPersonModal = () => {
   document.getElementById('new-person-name').value           = person.name;
   document.getElementById('add-person-title').textContent    = '✏️ 정보 수정';
   document.getElementById('add-person-save-btn').textContent = '저장';
+  document.getElementById('add-person-delete-btn').style.display = 'inline-flex';
   renderEmojiPicker(selectedEmoji);
   document.getElementById('add-person-modal').classList.add('open');
   setTimeout(() => document.getElementById('new-person-name').focus(), 200);
 };
 window.closeAddPersonModal = () => document.getElementById('add-person-modal').classList.remove('open');
+window.deletePerson = async () => {
+  if (!editingPersonId) return;
+  if (!confirm('이 사람을 삭제할까요?
+기도문과 댓글도 모두 삭제됩니다.')) return;
+  // 기도문 하위 댓글까지 삭제
+  const prayersSnap = await getDocs(collection(db, 'persons', editingPersonId, 'prayers'));
+  for (const pd of prayersSnap.docs) {
+    const commSnap = await getDocs(collection(db, 'persons', editingPersonId, 'prayers', pd.id, 'comments'));
+    for (const cd of commSnap.docs) await deleteDoc(cd.ref);
+    await deleteDoc(pd.ref);
+  }
+  await deleteDoc(doc(db, 'persons', editingPersonId));
+  closeAddPersonModal();
+  selectedPersonId = null;
+  document.getElementById('person-panel').style.display = 'none';
+  document.getElementById('empty-state').style.display  = 'block';
+};
 window.savePerson = async () => {
   const name = document.getElementById('new-person-name').value.trim();
   if (!name) { alert('이름을 입력해 주세요.'); return; }
