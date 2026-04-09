@@ -69,7 +69,6 @@ body {
   display: flex; flex-direction: column;
   align-items: center;
   padding: 20px 0;
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
   gap: 6px; flex-shrink: 0; overflow: hidden;
 }
 .sidebar-title {
@@ -191,8 +190,136 @@ body {
   font-family: 'Noto Serif KR', serif; font-size: 14px; font-weight: 400;
   color: var(--text-muted); margin-bottom: 14px; letter-spacing: 1px;
 }
-.slider-wrap { position: relative; overflow: hidden; border-radius: var(--radius); }
-.cards-track { display: flex; transition: transform .4s cubic-bezier(.16,1,.3,1); }
+/* ── 격자 레이아웃 ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+}
+
+/* ── 최신 기도문 카드 ── */
+.latest-card {
+  background: linear-gradient(145deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 22px 22px 18px;
+  margin-bottom: 16px;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.latest-card::before {
+  content: '✝'; position: absolute; top: 14px; right: 18px;
+  font-size: 40px; opacity: .05; color: var(--text);
+}
+.latest-card-label {
+  font-size: 11px; color: var(--accent);
+  letter-spacing: 1.5px; font-family: 'Noto Serif KR', serif;
+}
+.latest-card-date {
+  font-size: 11px; color: var(--text-muted); letter-spacing: 1.5px;
+}
+.latest-card-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(13px, 3.5vw, 15px); line-height: 1.9;
+  color: var(--text); white-space: pre-wrap;
+  max-height: 160px; overflow-y: auto; padding-right: 4px;
+}
+.latest-card-text::-webkit-scrollbar { width: 4px; }
+.latest-card-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+.latest-card-footer {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  padding-top: 14px; border-top: 1px solid var(--border);
+}
+
+/* ── 미리보기 카드 ── */
+.mini-card {
+  background: linear-gradient(145deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative; overflow: hidden;
+  min-height: 130px;
+}
+.mini-card::before {
+  content: '✝'; position: absolute; bottom: 8px; right: 10px;
+  font-size: 28px; opacity: .04; color: var(--text);
+}
+.mini-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.3);
+}
+.mini-card:active { transform: scale(.97); }
+
+.mini-card-person {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px;
+}
+.mini-card-name {
+  font-weight: 500; color: var(--text);
+  font-size: 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mini-card-date {
+  font-size: 10px; color: var(--text-muted); letter-spacing: 1px;
+}
+.mini-card-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(11px, 3vw, 13px); line-height: 1.7;
+  color: var(--text); flex: 1;
+  word-break: break-all;
+}
+.mini-card-footer {
+  display: flex; gap: 10px; align-items: center;
+  margin-top: auto; padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.mini-stat {
+  font-size: 11px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 3px;
+}
+
+/* ── 이전 기도문 타이틀 ── */
+.grid-section-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 12px; color: var(--text-muted);
+  letter-spacing: 1.5px; margin-bottom: 10px; margin-top: 4px;
+}
+
+/* ── 기도문 상세 모달 ── */
+.detail-modal-inner {
+  position: relative;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0;
+}
+.detail-close-btn {
+  position: absolute; top: 0; right: 0;
+  background: transparent; border: none;
+  color: var(--text-muted); font-size: 18px; cursor: pointer;
+  padding: 4px 8px; border-radius: 8px; transition: all .15s; line-height: 1;
+}
+.detail-close-btn:hover { background: var(--surface2); color: var(--text); }
+.detail-text {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(13px, 3.5vw, 16px); line-height: 2;
+  color: var(--text); white-space: pre-wrap;
+  margin-bottom: 20px;
+  max-height: 50vh; overflow-y: auto;
+  padding-right: 4px;
+}
+.detail-actions {
+  display: flex; gap: 10px; align-items: center;
+  padding-top: 16px; border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
 
 .prayer-card {
   min-width: 100%;
@@ -200,7 +327,7 @@ body {
   border: 1px solid var(--border); border-radius: var(--radius);
   padding: 28px 28px 22px; position: relative; overflow: hidden;
   display: flex; flex-direction: column;
-  min-height: 260px;
+  min-height: 200px;
 }
 .prayer-card::before {
   content: '✝'; position: absolute; top: 16px; right: 20px;
@@ -212,7 +339,7 @@ body {
   font-size: clamp(12px, 3.5vw, 15px); line-height: 1.9; color: var(--text);
   white-space: pre-wrap;
   flex: 1;
-  max-height: 180px; overflow-y: auto; padding-right: 6px;
+  max-height: 160px; overflow-y: auto; padding-right: 6px;
 }
 .card-content::-webkit-scrollbar { width: 4px; }
 .card-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
@@ -402,10 +529,7 @@ body {
 .no-comment-text { font-size: 12px; color: var(--text-muted); }
 
 /* ── 버튼 ── */
-.action-row {
-  display: flex; gap: 12px; flex-wrap: wrap;
-  margin-bottom: env(safe-area-inset-bottom, 0px);
-}
+.action-row { display: flex; gap: 12px; flex-wrap: wrap; }
 .btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 20px; border-radius: 10px; font-size: 13px;
