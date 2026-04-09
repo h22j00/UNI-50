@@ -310,6 +310,22 @@ window.openPrayerDetail = (personId, prayerId, isAllView) => {
   document.getElementById('detail-comment-btn').querySelector('.comment-count').textContent = commentCount;
   document.getElementById('detail-edit-btns').innerHTML     = editBtns;
 
+  // 댓글 버튼 hold 이벤트 재설정
+  const dcBtn = document.getElementById('detail-comment-btn');
+  dcBtn.onmousedown  = (e) => startCommentHold(e, personId, prayerId);
+  dcBtn.onmouseup    = cancelCommentHold;
+  dcBtn.onmouseleave = cancelCommentHold;
+  dcBtn.ontouchstart = (e) => startCommentHold(e, personId, prayerId);
+  dcBtn.ontouchend   = cancelCommentHold;
+
+  // 댓글 수 실시간
+  const dcCol = collection(doc(db, 'persons', personId, 'prayers', prayerId), 'comments');
+  const dcUnsub = onSnapshot(dcCol, snap => {
+    const el = document.querySelector('#detail-comment-btn .comment-count');
+    if (el) el.textContent = snap.size;
+    else dcUnsub();
+  });
+
   document.getElementById('detail-modal').classList.add('open');
 };
 
@@ -360,14 +376,21 @@ function renderCards(prayers, personId) {
 
   container.innerHTML = latestHtml + gridHtml;
 
-  // 댓글 수 실시간 반영
+  // 댓글 수 실시간 반영 (최신카드 + 미니카드 + 상세모달)
   withPid.forEach(pr => {
     const commentsCol = collection(doc(db, 'persons', personId, 'prayers', pr.id), 'comments');
     onSnapshot(commentsCol, snap => {
-      // 미리보기 카드의 댓글 수는 재렌더링으로 반영되므로 상세 모달만 업데이트
+      const cnt = snap.size;
+      // comment-btn-ID (최신카드/미니카드)
+      const btn = document.getElementById(`comment-btn-${pr.id}`);
+      if (btn) {
+        const el = btn.querySelector('.comment-count');
+        if (el) el.textContent = cnt;
+      }
+      // 상세 모달
       if (detailPrayerId === pr.id) {
         const countEl = document.querySelector('#detail-comment-btn .comment-count');
-        if (countEl) countEl.textContent = snap.size;
+        if (countEl) countEl.textContent = cnt;
       }
     });
   });
