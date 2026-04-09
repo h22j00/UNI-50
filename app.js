@@ -432,6 +432,9 @@ function renderCards(prayers, personId) {
         const stats = miniCard.querySelectorAll('.mini-stat');
         if (stats[1]) stats[1].textContent = `💬 ${cnt}`;
       }
+      // 블로그형 목록 댓글 수 업데이트
+      const listCount = document.querySelector(`.comment-count-list-${pr.id}`);
+      if (listCount) listCount.textContent = cnt;
       // 상세 모달
       if (detailPrayerId === pr.id) {
         const countEl = document.querySelector('#detail-comment-btn .comment-count');
