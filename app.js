@@ -359,7 +359,11 @@ function renderCards(prayers, personId) {
     return;
   }
 
-  const sorted = [...prayers].reverse();
+  const sorted = [...prayers].sort((a, b) => {
+    const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+    return tb - ta; // 최신순
+  });
 
   // personId를 pr에 주입
   const person2 = persons.find(p => p.id === personId);
@@ -381,11 +385,17 @@ function renderCards(prayers, personId) {
     const commentsCol = collection(doc(db, 'persons', personId, 'prayers', pr.id), 'comments');
     onSnapshot(commentsCol, snap => {
       const cnt = snap.size;
-      // comment-btn-ID (최신카드/미니카드)
+      // comment-btn-ID (최신카드)
       const btn = document.getElementById(`comment-btn-${pr.id}`);
       if (btn) {
         const el = btn.querySelector('.comment-count');
         if (el) el.textContent = cnt;
+      }
+      // 미니카드 댓글 수 — mini-stat 업데이트
+      const miniCard = document.querySelector(`[onclick*="'${pr.id}'"]`);
+      if (miniCard) {
+        const stats = miniCard.querySelectorAll('.mini-stat');
+        if (stats[1]) stats[1].textContent = `💬 ${cnt}`;
       }
       // 상세 모달
       if (detailPrayerId === pr.id) {
