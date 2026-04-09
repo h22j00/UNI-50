@@ -5,11 +5,11 @@
   --surface: #161922;
   --surface2: #1e2230;
   --border: #2a3050;
-  --text: #e8e4da;
+  --text: #FFF9E6;
   --text-muted: #7a8099;
   --gold: #f5c842;
   --gold-glow: rgba(245, 200, 66, 0.35);
-  --accent: #8a9fd4;
+  --accent: #99C3E4;
   --red: #e06b6b;
   --radius: 16px;
 }
@@ -162,9 +162,10 @@ body {
 .empty-state {
   text-align: center; animation: fadeIn .5s ease; padding: 20px;
   width: 100%;
-  margin: auto 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: calc(100vh - 64px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .uni-logo { width: min(280px, 65vw); margin: 0 auto 28px; opacity: 0.9; filter: drop-shadow(0 0 16px rgba(255,255,255,0.15)); }
 .uni-logo svg { width: 100%; height: auto; }
