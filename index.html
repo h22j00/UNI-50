@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>POD UNI+ 50일 기도문</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -40,7 +40,7 @@
         </g>
       </svg>
     </div>
-    <h2>본인 이름을 누르고<br>기도문을 작성해주세요</h2>
+    <h2>기도할 사람을<br>선택해주세요</h2>
   </div>
 
   <!-- 개인 패널 -->
@@ -107,7 +107,7 @@
     <h2 id="modal-title">✦ 새 기도문 작성</h2>
     <div class="form-group">
       <label>기도문</label>
-      <textarea id="prayer-text" placeholder="50일 <UNI+부흥> 기도회를 위한 기도문을 작성해 주세요!"></textarea>
+      <textarea id="prayer-text" placeholder="이 분을 위한 기도문을 작성해 주세요..."></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeWriteModal()">취소</button>
@@ -147,9 +147,12 @@
       <label>아이콘 선택</label>
       <div class="emoji-picker" id="emoji-picker"></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-outline" onclick="closeAddPersonModal()">취소</button>
-      <button class="btn btn-primary" id="add-person-save-btn" onclick="savePerson()">추가</button>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn btn-danger" id="add-person-delete-btn" onclick="deletePerson()" style="display:none;">🗑️ 삭제</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline" onclick="closeAddPersonModal()">취소</button>
+        <button class="btn btn-primary" id="add-person-save-btn" onclick="savePerson()">추가</button>
+      </div>
     </div>
   </div>
 </div>
