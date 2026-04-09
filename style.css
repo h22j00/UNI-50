@@ -172,7 +172,7 @@ body {
   display: flex; justify-content: center; align-items: center;
 }
 .uni-logo svg { width: 100%; height: auto; display: block; margin: 0 auto; }
-.empty-state h2 { font-family: 'Noto Serif KR', serif; font-size: clamp(14px, 4vw, 20px); font-weight: 300; color: var(--text-muted); }
+.empty-state h2 { font-family: 'Noto Serif KR', serif; font-size: clamp(14px, 4vw, 20px); font-weight: 600; color: var(--text-muted); }
 
 @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
