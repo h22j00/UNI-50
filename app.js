@@ -411,10 +411,9 @@ function renderCards(prayers, personId) {
   const rest   = withPid.slice(1);
 
   const latestHtml = buildLatestCardHtml(latest);
-  const listHtml = rest.length > 0
-    ? `<div class="prayer-list-section-title">📜 이전 기도문</div>
-       <div class="prayer-list-wrap">${rest.map(pr => buildPrayerListItem(pr)).join('')}</div>`
-    : '';
+  // 전체 목록 (최신 포함)
+  const listHtml = `<div class="prayer-list-section-title">📜 기도문 목록</div>
+     <div class="prayer-list-wrap">${withPid.map(pr => buildPrayerListItem(pr)).join('')}</div>`;
 
   personalPrayersCache = withPid;
   container.innerHTML = latestHtml + listHtml;
