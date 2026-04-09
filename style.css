@@ -164,9 +164,8 @@ body {
   width: 100%;
   flex-direction: column; align-items: center; justify-content: center;
 }
-/* display:flex는 JS가 show할 때만 적용 */
 .uni-logo {
-  width: min(320px, 78vw);
+  width: min(280px, 70vw);
   margin: 0 auto 28px;
   opacity: 0.95;
   filter: drop-shadow(0 0 12px rgba(255,255,255,0.3));
