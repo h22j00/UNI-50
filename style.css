@@ -61,7 +61,7 @@ body {
 #sidebar {
   position: relative; z-index: 10;
   width: 110px; height: 100vh;
-  background: rgba(100,160,210,.92);
+  background: rgba(141, 196, 242,.92);
   backdrop-filter: blur(12px);
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
