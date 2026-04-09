@@ -64,6 +64,8 @@ function hideLoading() {
   document.getElementById('sidebar').style.display        = 'flex';
   document.getElementById('main').style.display           = 'flex';
   document.getElementById('main').classList.add('empty');
+  document.getElementById('empty-state').style.cssText =
+    'display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 64px); width:100%;';
 }
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -688,7 +690,7 @@ window.deletePerson = async () => {
   closeAddPersonModal();
   selectedPersonId = null;
   document.getElementById('person-panel').style.display = 'none';
-  document.getElementById('empty-state').style.display  = 'block';
+  document.getElementById('empty-state').style.display  = 'flex';
 };
 window.savePerson = async () => {
   const name = document.getElementById('new-person-name').value.trim();
