@@ -205,7 +205,7 @@ function buildChecklistHtml(personId) {
   return `
     <div class="checklist-section">
       <div class="checklist-header">
-        <span class="checklist-title">📖 챕터 읽기</span>
+        <span class="checklist-title">📖 <부흥> 챕터 읽기</span>
         <span class="checklist-progress" id="checklist-progress-${personId}">0 / 24</span>
       </div>
       <div class="ch-grid">${items}</div>
