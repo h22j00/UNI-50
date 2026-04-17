@@ -276,10 +276,18 @@ body {
 }
 .ch-bar-item.checked .ch-bar-num { color: rgba(255,255,255,0.7); }
 .ch-bar-name {
-  font-size: 10px; color: var(--text-muted);
-  line-height: 1; word-break: keep-all;
+  font-size: 10px; 
+  color: var(--text-muted);
+  line-height: 1.2;           
+  word-break: keep-all;
   transition: color .15s;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2;   
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  white-space: normal;      
 }
 .ch-bar-item.checked .ch-bar-name { color: #fff; }
 .checklist-progress-bar-wrap {
