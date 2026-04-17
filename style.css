@@ -302,7 +302,7 @@ body {
   margin-bottom: 16px;
 }
 .latest-card::before {
-  content: '✝'; position: absolute; top: 14px; right: 18px;
+  content: '🌊'; position: absolute; top: 14px; right: 18px;
   font-size: 40px; opacity: .05; color: var(--text);
 }
 .latest-card-label {
@@ -338,7 +338,7 @@ body {
   min-height: 130px;
 }
 .mini-card::before {
-  content: '✝'; position: absolute; bottom: 8px; right: 10px;
+  content: '🌊'; position: absolute; bottom: 8px; right: 10px;
   font-size: 28px; opacity: .04; color: var(--text);
 }
 .mini-card:hover {
@@ -418,7 +418,7 @@ body {
   min-height: 200px;
 }
 .prayer-card::before {
-  content: '✝'; position: absolute; top: 16px; right: 20px;
+  content: '🌊'; position: absolute; top: 16px; right: 20px;
   font-size: 42px; opacity: .05; color: var(--text);
 }
 .card-date { font-size: 11px; color: var(--text-muted); letter-spacing: 1.5px; margin-bottom: 16px; }
