@@ -478,7 +478,7 @@ function buildChapterSummaryHtml(data) {
   return `
     <div class="chapter-summary-section">
       <div class="chapter-summary-header">
-        <span class="chapter-summary-title">📖 챕터 읽기 현황</span>
+        <span class="chapter-summary-title">📖 <부흥> 전체 독서 현황</span>
         <span class="chapter-summary-badge">24챕터</span>
       </div>
       <div class="ch-summary-grid">${rows}</div>
