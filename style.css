@@ -744,9 +744,18 @@ body {
 }
 .ch-summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 3px;
+  max-height: 180px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  padding-right: 2px;
 }
+.ch-summary-grid::-webkit-scrollbar { width: 3px; }
+.ch-summary-grid::-webkit-scrollbar-track { background: transparent; }
+.ch-summary-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 .ch-summary-row {
   display: flex; align-items: center; gap: 3px;
   padding: 4px 5px;
