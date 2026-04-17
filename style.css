@@ -211,6 +211,7 @@ body {
   border-radius: var(--radius);
   padding: 12px 12px 10px;
   width: 100%;
+  margin-bottom: 16px;
 }
 .checklist-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -227,10 +228,20 @@ body {
   border-radius: 20px; padding: 1px 10px;
 }
 .ch-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 3px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 160px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 2px;
 }
+.ch-grid::-webkit-scrollbar { width: 3px; }
+.ch-grid::-webkit-scrollbar-track { background: transparent; }
+.ch-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 .ch-bar-item {
   cursor: pointer;
   border: 1px solid var(--border);
@@ -239,6 +250,8 @@ body {
   overflow: hidden;
   position: relative;
   transition: border-color .15s;
+  flex-shrink: 0;
+  width: 100%;
 }
 .ch-bar-item:hover { border-color: var(--accent); }
 .ch-bar-item:active { transform: scale(0.95); }
@@ -262,13 +275,13 @@ body {
 }
 .ch-bar-item.checked .ch-bar-num { color: rgba(255,255,255,0.7); }
 .ch-bar-name {
-  font-size: 7px; color: var(--text-muted);
+  font-size: 7.5px; color: var(--text-muted);
   line-height: 1.35; word-break: keep-all;
   transition: color .15s;
 }
 .ch-bar-item.checked .ch-bar-name { color: #fff; }
 .checklist-progress-bar-wrap {
-  margin-top: 8px; height: 3px; border-radius: 3px;
+  margin-top: 7px; height: 3px; border-radius: 3px;
   background: rgba(70,146,242,.15); overflow: hidden;
 }
 .checklist-progress-bar {
@@ -284,6 +297,7 @@ body {
   padding: 22px 22px 18px;
   position: relative; overflow: hidden;
   display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 16px;
 }
 .latest-card::before {
   content: '✝'; position: absolute; top: 14px; right: 18px;
