@@ -477,13 +477,14 @@ function renderCards(prayers, personId) {
   const latest = withPid[0];
 
   const latestHtml = buildLatestCardHtml(latest);
+  const cardsTitleHtml = `<div class="cards-section-title">📜 기도 카드</div>`;
   const listHtml = `<div class="prayer-list-section-title">📜 기도문 목록</div>
      <div class="prayer-list-wrap">${withPid.map(pr => buildPrayerListItem(pr)).join('')}</div>`;
 
-  // ✅ 체크리스트를 인적사항과 최신 기도문 사이에 삽입
+  // ✅ 체크리스트 → 기도카드 제목 → 최신기도문 → 목록 순서
   const checklistHtml = buildChecklistHtml(personId);
   personalPrayersCache = withPid;
-  container.innerHTML = checklistHtml + latestHtml + listHtml;
+  container.innerHTML = checklistHtml + cardsTitleHtml + latestHtml + listHtml;
 
   // 체크리스트 상태 불러오기
   loadChecklist(personId);
