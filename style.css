@@ -154,7 +154,6 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
-/* 패널이 없을 때 가운데 정렬용 */
 #main.empty { justify-content: center; }
 #main::-webkit-scrollbar { width: 4px; }
 #main::-webkit-scrollbar-track { background: transparent; }
@@ -203,20 +202,78 @@ body {
   border-radius: 20px; padding: 2px 10px; font-size: 11px; color: #F5C842; margin-top: 5px;
 }
 
-/* ── 카드 슬라이더 ── */
-.cards-section h3 {
-  font-family: 'Noto Serif KR', serif; font-size: 14px; font-weight: 400;
-  color: var(--text-muted); margin-bottom: 14px; letter-spacing: 1px;
-}
-/* ── 격자 레이아웃 ── */
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📖 챕터 체크리스트
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.checklist-section {
+  background: linear-gradient(145deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 12px 10px;
   width: 100%;
 }
-@media (min-width: 640px) {
-  .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.checklist-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.checklist-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.checklist-progress {
+  font-size: 11px; color: var(--accent);
+  background: rgba(98,148,240,.15);
+  border: 1px solid rgba(98,148,240,.35);
+  border-radius: 20px; padding: 1px 10px;
+}
+.ch-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 3px;
+}
+.ch-bar-item {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  overflow: hidden;
+  position: relative;
+  transition: border-color .15s;
+}
+.ch-bar-item:hover { border-color: var(--accent); }
+.ch-bar-item:active { transform: scale(0.95); }
+.ch-bar-item.checked { border-color: var(--accent); }
+.ch-bar-fill {
+  position: absolute; top: 0; left: 0; bottom: 0;
+  width: 0%;
+  background: var(--accent);
+  transition: width .35s ease;
+}
+.ch-bar-item.checked .ch-bar-fill { width: 100%; }
+.ch-bar-content {
+  position: relative; z-index: 1;
+  padding: 5px 5px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ch-bar-num {
+  font-size: 9px; font-weight: 700;
+  color: var(--accent);
+  line-height: 1; transition: color .15s;
+}
+.ch-bar-item.checked .ch-bar-num { color: rgba(255,255,255,0.7); }
+.ch-bar-name {
+  font-size: 7px; color: var(--text-muted);
+  line-height: 1.35; word-break: keep-all;
+  transition: color .15s;
+}
+.ch-bar-item.checked .ch-bar-name { color: #fff; }
+.checklist-progress-bar-wrap {
+  margin-top: 8px; height: 3px; border-radius: 3px;
+  background: rgba(70,146,242,.15); overflow: hidden;
+}
+.checklist-progress-bar {
+  height: 100%; background: var(--accent);
+  border-radius: 3px; transition: width .3s ease;
 }
 
 /* ── 최신 기도문 카드 ── */
@@ -225,7 +282,6 @@ body {
   border: 1px solid var(--accent);
   border-radius: var(--radius);
   padding: 22px 22px 18px;
-  margin-bottom: 16px;
   position: relative; overflow: hidden;
   display: flex; flex-direction: column; gap: 10px;
 }
@@ -275,7 +331,6 @@ body {
   box-shadow: 0 6px 20px rgba(0,0,0,.3);
 }
 .mini-card:active { transform: scale(.97); }
-
 .mini-card-person {
   display: flex; align-items: center; gap: 6px;
   font-size: 13px;
@@ -360,7 +415,6 @@ body {
 }
 .card-content::-webkit-scrollbar { width: 4px; }
 .card-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
-
 .card-footer {
   display: flex; justify-content: space-between; align-items: center;
   margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);
@@ -370,7 +424,6 @@ body {
 .slider-dots { display: flex; gap: 6px; }
 .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); transition: all .25s; cursor: pointer; }
 .dot.active { background: var(--accent); width: 18px; border-radius: 3px; }
-
 .slider-nav { display: flex; gap: 8px; }
 .nav-btn {
   width: 32px; height: 32px; border-radius: 50%;
@@ -392,7 +445,6 @@ body {
 .heart-btn:hover { border-color: #e06b6b; color: #e06b6b; }
 .heart-btn.liked { border-color: #e06b6b; color: #e06b6b; background: rgba(224,107,107,.08); }
 
-
 /* ── 💬 댓글 버튼 ── */
 .comment-bubble-btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -411,8 +463,6 @@ body {
 .comment-bubble-btn:hover::after { opacity: 1; }
 .comment-bubble-btn:hover { border-color: var(--accent); background: rgba(138,159,212,.08); }
 .comment-bubble-btn:active { transform: scale(0.93); }
-
-/* 댓글 숫자 배지 */
 .comment-count {
   font-size: 12px;
   font-family: 'Noto Sans KR', sans-serif;
@@ -420,8 +470,6 @@ body {
   min-width: 8px;
   display: inline-block;
 }
-
-
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    댓글 바텀시트
@@ -431,7 +479,6 @@ body {
   background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
 }
 #sheet-backdrop.open { display: block; }
-
 #comment-sheet {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 400;
   background: var(--surface);
@@ -444,7 +491,6 @@ body {
   box-shadow: 0 -8px 40px rgba(0,0,0,.45);
 }
 #comment-sheet.open { transform: translateY(0); }
-
 .sheet-handle-bar {
   width: 36px; height: 4px; border-radius: 2px;
   background: var(--border); margin: 12px auto 0; flex-shrink: 0;
@@ -464,8 +510,6 @@ body {
   padding: 4px 6px; border-radius: 8px; transition: all .15s; line-height: 1;
 }
 .sheet-close-btn:hover { background: var(--surface2); color: var(--text); }
-
-/* 댓글 목록 */
 .sheet-comment-list {
   flex: 1; overflow-y: auto;
   padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;
@@ -473,7 +517,6 @@ body {
 }
 .sheet-comment-list::-webkit-scrollbar { width: 4px; }
 .sheet-comment-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
 .sheet-comment-item {
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 12px; padding: 10px 12px;
@@ -502,8 +545,6 @@ body {
 }
 .comment-action-btn:hover { background: var(--border); }
 .comment-action-btn.danger:hover { background: rgba(224,107,107,.15); }
-
-/* 댓글 입력 영역 */
 .sheet-input-area {
   padding: 10px 14px 16px; border-top: 1px solid var(--border); flex-shrink: 0;
   display: flex; flex-direction: column; gap: 8px;
@@ -518,7 +559,6 @@ body {
 }
 .sheet-input-name:focus { border-color: var(--accent); }
 .sheet-input-name::placeholder { color: var(--text-muted); }
-
 .sheet-input-row {
   display: flex; gap: 8px; align-items: flex-end;
 }
@@ -532,7 +572,6 @@ body {
 }
 .sheet-input-text:focus { border-color: var(--accent); }
 .sheet-input-text::placeholder { color: var(--text-muted); }
-
 .sheet-send-btn {
   width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
   background: var(--accent); border: none; color: #0d0f14;
@@ -542,7 +581,6 @@ body {
 }
 .sheet-send-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
 .sheet-send-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-
 .no-comment-text { font-size: 12px; color: var(--text-muted); }
 
 /* ── 버튼 ── */
@@ -575,7 +613,6 @@ body {
 }
 @keyframes modalPop { from { opacity: 0; transform: scale(.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 .modal h2 { font-family: 'Noto Serif KR', serif; font-size: 18px; margin-bottom: 20px; }
-
 .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
 .form-group label { font-size: 12px; color: var(--text-muted); letter-spacing: 1px; }
 .form-group textarea, .form-group input {
@@ -600,12 +637,6 @@ body {
 /* ── 빈 카드 ── */
 .no-cards { text-align: center; padding: 40px 20px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }
 .no-cards p { color: var(--text-muted); font-size: 14px; line-height: 1.8; }
-
-
-
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
 /* ── 기도문 제목/목록 (블로그형) ── */
 .prayer-list-item {
@@ -645,3 +676,22 @@ body {
   font-size: 12px; color: var(--text-muted);
   letter-spacing: 1.5px; margin-bottom: 4px;
 }
+
+/* ── 격자 레이아웃 ── */
+.cards-section h3 {
+  font-family: 'Noto Serif KR', serif; font-size: 14px; font-weight: 400;
+  color: var(--text-muted); margin-bottom: 14px; letter-spacing: 1px;
+}
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+@media (min-width: 640px) {
+  .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
