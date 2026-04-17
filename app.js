@@ -672,7 +672,7 @@ function renderCards(prayers, personId) {
   const latest = withPid[0];
 
   const latestHtml = buildLatestCardHtml(latest);
-  const cardsTitleHtml = `<div class="cards-section-title">📜 기도 카드</div>`;
+  const cardsTitleHtml = `<div class="cards-section-title">💌 기도 카드</div>`;
   const listHtml = `<div class="prayer-list-section-title">📜 기도문 목록</div>
      <div class="prayer-list-wrap">${withPid.map(pr => buildPrayerListItem(pr)).join('')}</div>`;
 
