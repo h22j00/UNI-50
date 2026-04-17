@@ -118,17 +118,21 @@ window.confirmPledge = async () => {
 
 // 패널 헤더 + 요일뱃지 업데이트
 async function updatePanelHeaderWithPledge(person) {
+  // hasGlow = 이번 주 기도문 있음 (glow:true인 기도문 존재)
   const hasGlow = person.hasGlow || false;
   const avatarEl = document.getElementById('panel-avatar');
   avatarEl.textContent = person.icon;
 
   const pledge = await loadPledge(person.id);
   const hasPledge = pledge && pledge.day;
-  const hasPrayed = pledge && pledge.prayed;
 
-  // 아바타 클래스
+  // ✅ 수정1: 뱃지 색상 기준 = hasGlow (기도문 있으면 노란색, 없으면 빨간색)
+  // pledge.prayed 대신 hasGlow로 판단 → 기도문 삭제 시 자동 빨간색 복구
+  const isGold = hasGlow;
+
+  // 아바타 클래스 — 요일 설정 여부 관계없이 기도했으면 glow
   let avatarClass = 'panel-avatar-lg';
-  if (hasPrayed && hasGlow) avatarClass += ' glowing';
+  if (hasGlow) avatarClass += ' glowing';
   avatarEl.className = avatarClass;
 
   // 요일 뱃지
@@ -140,16 +144,16 @@ async function updatePanelHeaderWithPledge(person) {
     avatarEl.parentNode.style.position = 'relative';
   }
   if (hasPledge) {
-    badgeEl.className = 'day-pledge-badge' + (hasPrayed ? ' gold' : ' red');
+    badgeEl.className = 'day-pledge-badge' + (isGold ? ' gold' : ' red');
     badgeEl.textContent = pledge.day;
     avatarEl.parentNode.appendChild(badgeEl);
   } else {
-    badgeEl.remove && badgeEl.remove();
+    if (badgeEl.parentNode) badgeEl.parentNode.removeChild(badgeEl);
   }
 
   document.getElementById('panel-name').textContent = person.name;
 
-  // glow-badge (이번 주 기도함)
+  // glow-badge (이번 주 기도함) — 요일 선택 여부 무관하게 기도했으면 표시
   document.getElementById('glow-badge').style.display = hasGlow ? 'inline-flex' : 'none';
 
   // pledge-badge (요일 작정)
@@ -333,15 +337,17 @@ function renderSidebar() {
   const filtered = searchQuery ? persons.filter(p => p.name.includes(searchQuery)) : persons;
   filtered.forEach(p => {
     const hasGlow = p.hasGlow || false;
-    const pledgeInfo = p.pledgeData; // 캐시된 pledge 데이터
+    const pledgeInfo = p.pledgeData;
     const hasPledge = pledgeInfo && pledgeInfo.day;
-    const hasPrayed = pledgeInfo && pledgeInfo.prayed;
+    // ✅ 수정1: 뱃지 색상 = hasGlow 기준 (기도문 삭제시 자동 빨간색 복구)
+    // ✅ 수정2: 요일 미설정이어도 기도했으면 glow 표시
+    const isGold = hasGlow;
     const dayBadge = hasPledge
-      ? `<span class="day-pledge-badge ${hasPrayed ? 'gold' : 'red'}">${pledgeInfo.day}</span>`
+      ? `<span class="day-pledge-badge ${isGold ? 'gold' : 'red'}">${pledgeInfo.day}</span>`
       : '';
     const btn = document.createElement('button');
-    btn.className = 'person-btn' + (p.id === selectedPersonId ? ' active' : '') + (hasPrayed && hasGlow ? ' glowing' : '');
-    btn.innerHTML = `<div class="person-avatar-wrap"><div class="person-avatar">${p.icon}<span class="glow-dot"></span></div>${dayBadge}</div><span class="person-name ${hasPrayed && hasGlow ? 'glow-name' : ''}">${p.name}</span>`;
+    btn.className = 'person-btn' + (p.id === selectedPersonId ? ' active' : '') + (hasGlow ? ' glowing' : '');
+    btn.innerHTML = `<div class="person-avatar-wrap"><div class="person-avatar">${p.icon}<span class="glow-dot"></span></div>${dayBadge}</div><span class="person-name">${p.name}</span>`;
     btn.onclick = () => selectPerson(p.id);
     list.appendChild(btn);
   });
