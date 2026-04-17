@@ -48,6 +48,7 @@
           <button class="btn btn-edit" style="padding:4px 10px;font-size:11px;flex-shrink:0;" onclick="openEditPersonModal()">✏️ 편집</button>
         </div>
         <p id="panel-sub">기도 카드</p>
+        <span class="pledge-badge" id="pledge-badge" style="display:none"></span>
         <span class="glow-badge" id="glow-badge" style="display:none">✦ 이번 주 기도함</span>
       </div>
     </div>
@@ -169,6 +170,27 @@
         <button class="btn btn-primary" id="add-person-save-btn" onclick="savePerson()">추가</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ✅ 요일 작정 선택 모달 -->
+<div class="modal-overlay" id="pledge-modal">
+  <div class="modal">
+    <h2>✝ 작정 기도 요일 선택</h2>
+    <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:4px;">
+      매주 기도할 요일을 선택해주세요.<br>
+      일요일마다 자동으로 초기화됩니다.
+    </p>
+    <div class="pledge-day-grid">
+      <button class="pledge-day-btn" onclick="selectPledgeDay('월',this)">월</button>
+      <button class="pledge-day-btn" onclick="selectPledgeDay('화',this)">화</button>
+      <button class="pledge-day-btn" onclick="selectPledgeDay('수',this)">수</button>
+      <button class="pledge-day-btn" onclick="selectPledgeDay('목',this)">목</button>
+      <button class="pledge-day-btn" onclick="selectPledgeDay('금',this)">금</button>
+      <button class="pledge-day-btn" onclick="selectPledgeDay('토',this)">토</button>
+    </div>
+    <button id="pledge-confirm-btn" disabled onclick="confirmPledge()">요일을 선택해주세요</button>
+    <button class="pledge-skip-btn" onclick="closePledgeModal()">나중에 설정하기</button>
   </div>
 </div>
 
