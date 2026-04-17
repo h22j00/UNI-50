@@ -744,7 +744,7 @@ body {
 }
 .ch-summary-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 3px;
   max-height: 180px;
   overflow-y: auto;
