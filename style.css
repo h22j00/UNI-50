@@ -276,18 +276,10 @@ body {
 }
 .ch-bar-item.checked .ch-bar-num { color: rgba(255,255,255,0.7); }
 .ch-bar-name {
-  font-size: 10px; 
-  color: var(--text-muted);
-  line-height: 1.2;           
-  word-break: keep-all;
+  font-size: 10px; color: var(--text-muted);
+  line-height: 1; word-break: keep-all;
   transition: color .15s;
-
-  display: -webkit-box;
-  -webkit-line-clamp: 2;   
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-
-  white-space: normal;      
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .ch-bar-item.checked .ch-bar-name { color: #fff; }
 .checklist-progress-bar-wrap {
@@ -725,3 +717,66 @@ body {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📖 전체보기 챕터 읽기 현황 (8열)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.chapter-summary-section {
+  background: linear-gradient(145deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 12px 10px;
+  margin-bottom: 16px;
+}
+.chapter-summary-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.chapter-summary-title {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 13px; font-weight: 600; color: var(--text);
+}
+.chapter-summary-badge {
+  font-size: 11px; color: var(--accent);
+  background: rgba(98,148,240,.15);
+  border: 1px solid rgba(98,148,240,.35);
+  border-radius: 20px; padding: 1px 10px;
+}
+.ch-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+}
+.ch-summary-row {
+  display: flex; align-items: center; gap: 3px;
+  padding: 4px 5px;
+  background: var(--bg);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+.ch-summary-row.done {
+  background: rgba(98,148,240,.12);
+  border-color: var(--accent);
+}
+.ch-summary-icon { font-size: 12px; flex-shrink: 0; }
+.ch-summary-info {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ch-summary-name {
+  font-size: 7px; color: var(--text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ch-summary-bar {
+  width: 100%; height: 3px;
+  background: rgba(70,146,242,.15);
+  border-radius: 2px; overflow: hidden;
+}
+.ch-summary-fill {
+  height: 100%; background: var(--accent); border-radius: 2px;
+}
+.ch-summary-num {
+  font-size: 7px; color: var(--text-muted); flex-shrink: 0;
+}
+.ch-summary-num.done { color: var(--accent); font-weight: 700; }
