@@ -269,26 +269,71 @@ window.openAllView = async () => {
   const container = document.getElementById('all-cards-container');
   container.innerHTML = '<p style="color:var(--text-muted);text-align:center;font-size:13px;">불러오는 중...</p>';
 
+  // ── 챕터 현황 + 기도문 동시 로딩 ──
   let allPrayers = [];
+  const chapterData = []; // { icon, name, count }
+
   for (const person of persons) {
+    // 기도문
     const snap = await getDocs(collection(db, 'persons', person.id, 'prayers'));
     for (const d of snap.docs) {
       const commSnap = await getDocs(collection(db, 'persons', person.id, 'prayers', d.id, 'comments'));
       allPrayers.push({ id: d.id, personId: person.id, personName: person.name, personIcon: person.icon, commentCount: commSnap.size, ...d.data() });
     }
+    // 챕터 체크리스트
+    try {
+      const chSnap = await getDoc(doc(db, 'persons', person.id, 'meta', 'checklist'));
+      const checked = chSnap.exists() ? (chSnap.data().checked || []) : [];
+      chapterData.push({ icon: person.icon, name: person.name, count: checked.length });
+    } catch (e) {
+      chapterData.push({ icon: person.icon, name: person.name, count: 0 });
+    }
   }
+
   allPrayers.sort((a, b) => {
     const ta = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
     const tb = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
     return tb - ta;
   });
 
+  // 챕터 현황 렌더
+  const chapterHtml = buildChapterSummaryHtml(chapterData);
+
   if (allPrayers.length === 0) {
-    container.innerHTML = '<div class="no-cards"><p>아직 기도문이 없습니다 🙏</p></div>';
+    container.innerHTML = chapterHtml + '<div class="no-cards"><p>아직 기도문이 없습니다 🙏</p></div>';
     return;
   }
-  renderAllCards(allPrayers);
+  allPrayersCache = allPrayers;
+  const cardsHtml = allPrayers.map(pr => buildCardHtml(pr, true)).join('');
+  container.innerHTML = chapterHtml +
+    `<div class="prayer-list-section-title" style="margin-top:4px;">📜 기도문 목록</div>` +
+    `<div class="cards-grid">${cardsHtml}</div>`;
 };
+
+function buildChapterSummaryHtml(data) {
+  const rows = data.map(p => {
+    const pct = Math.round(p.count / 24 * 100);
+    const done = p.count === 24;
+    return `
+      <div class="ch-summary-row${done ? ' done' : ''}">
+        <span class="ch-summary-icon">${p.icon}</span>
+        <div class="ch-summary-info">
+          <span class="ch-summary-name">${escHtml(p.name)}</span>
+          <div class="ch-summary-bar"><div class="ch-summary-fill" style="width:${pct}%"></div></div>
+        </div>
+        <span class="ch-summary-num${done ? ' done' : ''}">${p.count}</span>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="chapter-summary-section">
+      <div class="chapter-summary-header">
+        <span class="chapter-summary-title">📖 챕터 읽기 현황</span>
+        <span class="chapter-summary-badge">24챕터</span>
+      </div>
+      <div class="ch-summary-grid">${rows}</div>
+    </div>`;
+}
 
 let allCurrentSlide = 0;
 let allPrayersCache = [];
