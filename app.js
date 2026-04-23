@@ -44,13 +44,17 @@ const EMOJIS = [
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const DAYS = ['월','화','수','목','금','토'];
 
-// 이번 주 키 (일요일 기준)
+// 이번 주 키 (일요일 기준) — 로컬 날짜 기준으로 계산
 function getWeekKey() {
   const now = new Date();
-  const day = now.getDay(); // 0=일
+  const day = now.getDay(); // 0=일, 1=월 ~ 6=토
   const sunday = new Date(now);
   sunday.setDate(now.getDate() - day);
-  return sunday.toISOString().slice(0, 10);
+  // ✅ toISOString() 대신 로컬 날짜 사용 (UTC 시차 문제 방지)
+  const y = sunday.getFullYear();
+  const m = String(sunday.getMonth() + 1).padStart(2, '0');
+  const d = String(sunday.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 // 요일 데이터 로드
@@ -205,7 +209,7 @@ function buildChecklistHtml(personId) {
   return `
     <div class="checklist-section">
       <div class="checklist-header">
-        <span class="checklist-title">📖 <부흥> 챕터 읽기</span>
+        <span class="checklist-title">📖 챕터 읽기</span>
         <span class="checklist-progress" id="checklist-progress-${personId}">0 / 24</span>
       </div>
       <div class="ch-grid">${items}</div>
@@ -478,7 +482,7 @@ function buildChapterSummaryHtml(data) {
   return `
     <div class="chapter-summary-section">
       <div class="chapter-summary-header">
-        <span class="chapter-summary-title">📖 <부흥> 전체 독서 현황</span>
+        <span class="chapter-summary-title">📖 챕터 읽기 현황</span>
         <span class="chapter-summary-badge">24챕터</span>
       </div>
       <div class="ch-summary-grid">${rows}</div>
@@ -672,7 +676,7 @@ function renderCards(prayers, personId) {
   const latest = withPid[0];
 
   const latestHtml = buildLatestCardHtml(latest);
-  const cardsTitleHtml = `<div class="cards-section-title">💌 기도 카드</div>`;
+  const cardsTitleHtml = `<div class="cards-section-title">📜 기도 카드</div>`;
   const listHtml = `<div class="prayer-list-section-title">📜 기도문 목록</div>
      <div class="prayer-list-wrap">${withPid.map(pr => buildPrayerListItem(pr)).join('')}</div>`;
 
