@@ -2,7 +2,7 @@
   "name": "UNI+ 50일 기도",
   "short_name": "기도",
   "description": "POD UNI+ 50일 기도문 앱",
-  "start_url": "/UNI-50/",
+  "start_url": "https://h22j00.github.io/UNI-50/",
   "display": "standalone",
   "background_color": "#99C3E4",
   "theme_color": "#4692f2",
