@@ -51,7 +51,7 @@ self.addEventListener('push', event => {
     tag: data.tag || 'uniplus-default',       // 같은 tag면 알림 덮어씀
     renotify: true,
     vibrate: [200, 100, 200],
-    data: { url: data.url || '/' }
+    data: { url: data.url || 'https://h22j00.github.io/UNI-50/' }
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -60,7 +60,7 @@ self.addEventListener('push', event => {
 // ── 알림 클릭 → 앱 열기 ─────────────────────────
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/';
+  const targetUrl = event.notification.data?.url || 'https://h22j00.github.io/UNI-50/';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
