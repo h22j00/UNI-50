@@ -47,7 +47,7 @@ async function registerSW() {
 
 // ★★★ 아래 키를 Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징
 //       → 웹 푸시 인증서 에서 발급받은 VAPID 공개 키로 교체하세요 ★★★
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+const VAPID_PUBLIC_KEY = 'BL1fSV-LxECDmceA81TStYPbNN61a9X9RjhMcBPHWkW24CP0sQl2uIUz7sMwxp_ZiltaTzUNP4Sjh27wvKjU97Y';
 
 async function requestNotificationPermission(personId = null) {
   // 이미 허용된 경우 바로 토큰 저장
