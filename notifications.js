@@ -32,7 +32,7 @@ const db          = getFirestore(firebaseApp);
 async function registerSW() {
   if (!('serviceWorker' in navigator)) return null;
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js');
+    const reg = await navigator.serviceWorker.register('/UNI-50/sw.js');
     console.log('✅ Service Worker 등록 완료');
     return reg;
   } catch (e) {
