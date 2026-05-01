@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>POD UNI+ 50일 기도문</title>
 <link rel="stylesheet" href="style.css">
+
+<!-- ✨ PWA 추가 -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4692f2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="UNI+ 기도">
+<link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body>
 <div id="stars"></div>
@@ -123,7 +131,7 @@
     </div>
     <div class="form-group">
       <label>기도문</label>
-      <textarea id="prayer-text" placeholder="50일 <UNI+ 부흥> 기도회를 위한 기도문을 작성해주세요!"></textarea>
+      <textarea id="prayer-text" placeholder="50일 &lt;UNI+ 부흥&gt; 기도회를 위한 기도문을 작성해주세요!"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeWriteModal()">취소</button>
@@ -173,7 +181,7 @@
   </div>
 </div>
 
-<!-- ✅ 요일 작정 선택 모달 -->
+<!-- 요일 작정 선택 모달 -->
 <div class="modal-overlay" id="pledge-modal">
   <div class="modal">
     <h2>📅 작정 기도 요일 선택</h2>
@@ -194,6 +202,8 @@
   </div>
 </div>
 
+<!-- ✨ 알림 스크립트 추가 -->
+<script type="module" src="notifications.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
