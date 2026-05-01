@@ -4,11 +4,11 @@
 
 const CACHE_NAME = 'uniplus-pray-v1';
 const URLS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json'
+  '/UNI-50/',
+  '/UNI-50/index.html',
+  '/UNI-50/style.css',
+  '/UNI-50/app.js',
+  '/UNI-50/manifest.json'
 ];
 
 // ── 설치: 핵심 파일 캐시 ─────────────────────────
