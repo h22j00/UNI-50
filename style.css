@@ -886,12 +886,12 @@ body {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 #ddosimi-btn { margin-bottom: 6px; }
 
-/* 제목 줄바꿈: 모바일만 줄바꿈, PC는 한 줄 */
-.ddosimi-title-br { display: none; }
-.ddosimi-title-space { display: inline; }
+/* 모바일에서 제목 크기 줄여서 한 줄 유지 */
 @media (max-width: 599px) {
-  .ddosimi-title-br { display: inline; }
-  .ddosimi-title-space { display: none; }
+  #ddosimi-panel .panel-info h1 {
+    font-size: 15px !important;
+    white-space: nowrap;
+  }
 }
 
 /* 모바일: 1열, PC: 2열 */
