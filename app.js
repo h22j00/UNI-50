@@ -1049,7 +1049,7 @@ function buildDdosimiCardHtml(item) {
   const ddoAge  = item.ddoAge  ? item.ddoAge  + '년생' : '';
   const invName = escHtml(item.invName  || '');
   const ddoName = escHtml(item.ddoName  || '');
-  const pray    = escHtml(item.pray     || '');
+  const pray    = escHtml(item.pray || '').replace(/\n/g, '<br>');
   const id      = item.id;
 
   return `
