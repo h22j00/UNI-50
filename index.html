@@ -29,9 +29,13 @@
   <div class="search-wrap">
     <input type="text" id="search-input" placeholder="🔍 이름 검색" oninput="filterPersons(this.value)">
   </div>
+  <button class="all-view-btn" id="ddosimi-btn" onclick="openDdosimiView()">
+    <span>💕</span>
+    <span class="all-view-label">또심이</span>
+  </button>
   <button class="all-view-btn" id="all-view-btn" onclick="openAllView()">
     <span>📋</span>
-    <span class="all-view-label">전체 보기</span>
+    <span class="all-view-label">전체 기도문</span>
   </button>
   <div id="person-list"></div>
   <button class="add-person-btn" onclick="openAddPersonModal()" title="사람 추가">＋</button>
@@ -155,6 +159,54 @@
     <div class="modal-actions">
       <button class="btn btn-outline" onclick="closeEditCommentModal()">취소</button>
       <button class="btn btn-primary" onclick="saveEditComment()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 또심이 패널 -->
+<div id="ddosimi-panel" style="display:none; flex-direction:column; gap:20px; width:100%; max-width:860px; padding-bottom:20px; margin-top:20px;">
+  <div>
+    <h2 style="font-family:'Noto Serif KR',serif;font-size:20px;color:var(--text);font-weight:600;display:flex;align-items:center;gap:8px;">💕 또 하나의 심장을 찾아서</h2>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:4px;padding-left:2px;">또심이를 위해 함께 기도해요</p>
+  </div>
+  <div id="ddosimi-cards-container"></div>
+  <button class="btn btn-primary" onclick="openDdosimiAddModal()" style="align-self:flex-start;">♥ 또심이 추가하기</button>
+</div>
+
+<!-- 또심이 추가/수정 모달 -->
+<div class="modal-overlay" id="ddosimi-modal">
+  <div class="modal">
+    <h2 id="ddosimi-modal-title">💕 새 또심이 추가</h2>
+    <div style="display:flex;gap:12px;">
+      <div class="form-group" style="flex:1;">
+        <label>🤗 초청자 이름</label>
+        <input type="text" id="ddosimi-inv-name" placeholder="초청자 이름" maxlength="20">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label>나이</label>
+        <select id="ddosimi-inv-age" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;padding:12px 14px;outline:none;width:100%;"></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:12px;">
+      <div class="form-group" style="flex:1;">
+        <label>💌 또심이 이름</label>
+        <input type="text" id="ddosimi-ddo-name" placeholder="전도 대상자 이름" maxlength="20">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label>나이</label>
+        <select id="ddosimi-ddo-age" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:14px;padding:12px 14px;outline:none;width:100%;"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>기도제목</label>
+      <textarea id="ddosimi-pray" placeholder="또심이를 위한 기도 제목을 적어주세요!" style="min-height:100px;"></textarea>
+    </div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn btn-danger" id="ddosimi-delete-btn" onclick="deleteDdosimi()" style="display:none;">🗑️ 삭제</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline" onclick="closeDdosimiModal()">취소</button>
+        <button class="btn btn-primary" onclick="saveDdosimi()">저장</button>
+      </div>
     </div>
   </div>
 </div>
