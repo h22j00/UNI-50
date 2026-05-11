@@ -924,6 +924,14 @@ body {
   -webkit-user-select: none;
 }
 .ddosimi-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.ddosimi-card::before {
+  content: '💕';
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-size: 28px;
+  opacity: .05;
+}
 
 /* 연결 레이아웃 */
 .ddosimi-con {
@@ -1006,7 +1014,6 @@ body {
   line-height: 1.8;
   color: var(--text);
   word-break: break-all;
-  white-space: pre-wrap;
 }
 
 /* 오버레이 */
