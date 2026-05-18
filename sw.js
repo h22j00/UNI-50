@@ -2,7 +2,7 @@
 //  🔔 Service Worker — 백그라운드 푸시 알림
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const CACHE_NAME = 'uniplus-pray-v11';
+const CACHE_NAME = 'uniplus-pray-v12';
 const URLS_TO_CACHE = [
   '/UNI-50/',
   '/UNI-50/index.html',
