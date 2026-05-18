@@ -369,9 +369,11 @@ async function selectPerson(id) {
   document.getElementById('all-panel').style.display   = 'none';
   document.getElementById('empty-state').style.display = 'none';
   document.getElementById('all-view-btn').classList.remove('active');
-  document.getElementById('ddosimi-btn').classList.remove('active');
-  document.getElementById('ddosimi-panel').style.display = 'none';
-  if (ddosimiUnsub) { ddosimiUnsub(); ddosimiUnsub = null; }
+  const _ddoPanel = document.getElementById('ddosimi-panel');
+  if (_ddoPanel) _ddoPanel.style.display = 'none';
+  const _ddoBtn = document.getElementById('ddosimi-btn');
+  if (_ddoBtn) _ddoBtn.classList.remove('active');
+
   document.getElementById('main').classList.remove('empty');
 
   const panel = document.getElementById('person-panel');
@@ -414,9 +416,7 @@ window.openAllView = async () => {
   document.getElementById('empty-state').style.display  = 'none';
   document.getElementById('person-panel').style.display = 'none';
   document.getElementById('all-view-btn').classList.add('active');
-  document.getElementById('ddosimi-btn').classList.remove('active');
-  document.getElementById('ddosimi-panel').style.display = 'none';
-  if (ddosimiUnsub) { ddosimiUnsub(); ddosimiUnsub = null; }
+
   document.getElementById('main').classList.remove('empty');
   renderSidebar();
 
@@ -980,8 +980,9 @@ window.savePerson = async () => {
   closeAddPersonModal();
 };
 
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  💕 또심이
+//  💕 친구 초청 리스트
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const DDOSIMI_YEARS = [];
 for (let y = 1995; y <= 2010; y++) DDOSIMI_YEARS.push(y);
@@ -1004,7 +1005,6 @@ let ddosimiUnsub = null;
 window.openDdosimiView = () => {
   selectedPersonId = null;
   if (prayersUnsub) { prayersUnsub(); prayersUnsub = null; }
-
   document.getElementById('empty-state').style.display  = 'none';
   document.getElementById('person-panel').style.display = 'none';
   document.getElementById('all-panel').style.display    = 'none';
@@ -1012,14 +1012,11 @@ window.openDdosimiView = () => {
   document.getElementById('ddosimi-btn').classList.add('active');
   document.getElementById('main').classList.remove('empty');
   renderSidebar();
-
   const panel = document.getElementById('ddosimi-panel');
   panel.style.display = 'flex';
   panel.style.animation = 'none';
   panel.offsetHeight;
   panel.style.animation = 'slideUp .4s cubic-bezier(.16,1,.3,1)';
-
-  // 실시간 리스너
   if (ddosimiUnsub) ddosimiUnsub();
   ddosimiUnsub = onSnapshot(collection(db, 'ddosimi'), snap => {
     const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -1035,50 +1032,32 @@ window.openDdosimiView = () => {
 function renderDdosimiCards(items) {
   const container = document.getElementById('ddosimi-cards-container');
   if (!items || items.length === 0) {
-    container.innerHTML = '<div class="no-cards"><p>아직 또심이가 없습니다.<br>아래 버튼으로 첫 또심이를 추가해 보세요 💕</p></div>';
+    container.innerHTML = '<div class="no-cards"><p>아직 친구가 없습니다.<br>아래 버튼으로 첫 친구를 추가해 보세요 💕</p></div>';
     return;
   }
-  const cardsHtml = items.map(item => buildDdosimiCardHtml(item)).join('');
-  container.innerHTML = `<div class="ddosimi-grid">${cardsHtml}</div>`;
+  container.innerHTML = `<div class="ddosimi-grid">${items.map(buildDdosimiCardHtml).join('')}</div>`;
 }
 
 function buildDdosimiCardHtml(item) {
   const d = item.createdAt?.toDate ? item.createdAt.toDate() : new Date();
   const dateStr = `${String(d.getFullYear()).slice(2)}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-  const invAge  = item.invAge  ? item.invAge  + '년생' : '';
-  const ddoAge  = item.ddoAge  ? item.ddoAge  + '년생' : '';
-  const invName = escHtml(item.invName  || '');
-  const ddoName = escHtml(item.ddoName  || '');
+  const invAge  = item.invAge ? item.invAge + '년생' : '';
+  const ddoAge  = item.ddoAge ? item.ddoAge + '년생' : '';
+  const invName = escHtml(item.invName || '');
+  const ddoName = escHtml(item.ddoName || '');
   const pray    = escHtml(item.pray || '').replace(/\n/g, '<br>');
   const id      = item.id;
-
   return `
     <div class="ddosimi-card" onclick="toggleDdosimiCard(this)">
       <div class="ddosimi-con">
         <div class="ddosimi-person">
-          <div class="ddosimi-icon-col">
-            <span class="ddosimi-emo">🤗</span>
-            <span class="ddosimi-badge ddosimi-badge-inv">초청자</span>
-          </div>
-          <div class="ddosimi-text-col">
-            <span class="ddosimi-age">${invAge}</span>
-            <span class="ddosimi-name ddosimi-name-inv">${invName}</span>
-          </div>
+          <div class="ddosimi-icon-col"><span class="ddosimi-emo">🤗</span><span class="ddosimi-badge ddosimi-badge-inv">초청자</span></div>
+          <div class="ddosimi-text-col"><span class="ddosimi-age">${invAge}</span><span class="ddosimi-name ddosimi-name-inv">${invName}</span></div>
         </div>
-        <div class="ddosimi-mid">
-          <div class="ddosimi-line"></div>
-          <span class="ddosimi-heart">💕</span>
-          <div class="ddosimi-line"></div>
-        </div>
+        <div class="ddosimi-mid"><div class="ddosimi-line"></div><span class="ddosimi-heart">💕</span><div class="ddosimi-line"></div></div>
         <div class="ddosimi-person ddosimi-person-right">
-          <div class="ddosimi-text-col">
-            <span class="ddosimi-age">${ddoAge}</span>
-            <span class="ddosimi-name">${ddoName}</span>
-          </div>
-          <div class="ddosimi-icon-col">
-            <span class="ddosimi-emo">💌</span>
-            <span class="ddosimi-badge ddosimi-badge-ddo">또심이</span>
-          </div>
+          <div class="ddosimi-text-col"><span class="ddosimi-age">${ddoAge}</span><span class="ddosimi-name">${ddoName}</span></div>
+          <div class="ddosimi-icon-col"><span class="ddosimi-emo">💌</span><span class="ddosimi-badge ddosimi-badge-ddo">친구</span></div>
         </div>
       </div>
       <div class="ddosimi-date">${dateStr}</div>
@@ -1102,14 +1081,11 @@ window.toggleDdosimiCard = (card) => {
   document.querySelectorAll('.ddosimi-card.ddosimi-open').forEach(c => c.classList.remove('ddosimi-open'));
   if (!wasOpen) card.classList.add('ddosimi-open');
 };
-window.closeDdosimiCard = (e, btn) => {
-  e.stopPropagation();
-  btn.closest('.ddosimi-card').classList.remove('ddosimi-open');
-};
+window.closeDdosimiCard = (e, btn) => { e.stopPropagation(); btn.closest('.ddosimi-card').classList.remove('ddosimi-open'); };
 
 window.openDdosimiAddModal = () => {
   editingDdosimiId = null;
-  document.getElementById('ddosimi-modal-title').textContent = '💕 새 또심이 추가';
+  document.getElementById('ddosimi-modal-title').textContent = '💕 새 친구 추가';
   document.getElementById('ddosimi-inv-name').value = '';
   document.getElementById('ddosimi-ddo-name').value = '';
   document.getElementById('ddosimi-pray').value = '';
@@ -1127,7 +1103,7 @@ window.openDdosimiEditModal = async (e, id) => {
   if (!snap.exists()) return;
   const item = snap.data();
   editingDdosimiId = id;
-  document.getElementById('ddosimi-modal-title').textContent = '✏️ 또심이 수정';
+  document.getElementById('ddosimi-modal-title').textContent = '✏️ 친구 수정';
   document.getElementById('ddosimi-inv-name').value = item.invName || '';
   document.getElementById('ddosimi-ddo-name').value = item.ddoName || '';
   document.getElementById('ddosimi-pray').value     = item.pray    || '';
@@ -1138,10 +1114,7 @@ window.openDdosimiEditModal = async (e, id) => {
   setTimeout(() => document.getElementById('ddosimi-inv-name').focus(), 200);
 };
 
-window.closeDdosimiModal = () => {
-  document.getElementById('ddosimi-modal').classList.remove('open');
-  editingDdosimiId = null;
-};
+window.closeDdosimiModal = () => { document.getElementById('ddosimi-modal').classList.remove('open'); editingDdosimiId = null; };
 
 window.saveDdosimi = async () => {
   const invName = document.getElementById('ddosimi-inv-name').value.trim();
@@ -1149,8 +1122,7 @@ window.saveDdosimi = async () => {
   const ddoName = document.getElementById('ddosimi-ddo-name').value.trim();
   const ddoAge  = document.getElementById('ddosimi-ddo-age').value;
   const pray    = document.getElementById('ddosimi-pray').value.trim();
-  if (!ddoName || !pray) { alert('또심이 이름과 기도제목을 입력해 주세요.'); return; }
-
+  if (!ddoName || !pray) { alert('친구 이름과 기도제목을 입력해 주세요.'); return; }
   const data = { invName, invAge, ddoName, ddoAge, pray };
   if (editingDdosimiId) {
     await updateDoc(doc(db, 'ddosimi', editingDdosimiId), data);
@@ -1163,32 +1135,33 @@ window.saveDdosimi = async () => {
 window.confirmDeleteDdosimi = async (e, id) => {
   e.stopPropagation();
   document.querySelectorAll('.ddosimi-card.ddosimi-open').forEach(c => c.classList.remove('ddosimi-open'));
-  if (!confirm('이 또심이를 삭제할까요?')) return;
+  if (!confirm('이 친구를 삭제할까요?')) return;
   await deleteDoc(doc(db, 'ddosimi', id));
 };
 
-// 기존 deleteDdosimi (모달에서 삭제 버튼용)
 window.deleteDdosimi = async () => {
   if (!editingDdosimiId) return;
-  if (!confirm('이 또심이를 삭제할까요?')) return;
+  if (!confirm('이 친구를 삭제할까요?')) return;
   await deleteDoc(doc(db, 'ddosimi', editingDdosimiId));
   closeDdosimiModal();
 };
 
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  모달 외부 클릭 / ESC
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      overlay.classList.remove('open');
-      if (overlay.id === 'edit-comment-modal') editingCommentRef = null;
-    }
-  });
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
-    closeCommentSheet();
+// 뷰 전환 시 친구 패널 닫기
+const _origSelectPerson = window.selectPerson;
+document.getElementById && (() => {
+  const origOpenAllView = window.openAllView;
+  window.openAllView = async () => {
+    document.getElementById('ddosimi-btn').classList.remove('active');
+    document.getElementById('ddosimi-panel').style.display = 'none';
+    if (ddosimiUnsub) { ddosimiUnsub(); ddosimiUnsub = null; }
+    await origOpenAllView();
+  };
+})();
+
+// 모달 외부 클릭 닫기 (ddosimi-modal 포함)
+document.addEventListener('click', e => {
+  const modal = document.getElementById('ddosimi-modal');
+  if (modal && modal.classList.contains('open') && e.target === modal) {
+    closeDdosimiModal();
   }
 });
